@@ -23,14 +23,34 @@ $sql="SELECT CARIKODU,TICARI_UNVANI,KONU,AKTIVITE_KODU,TIPI,DURUMU,
 
 try {
     $rows=runQuery($sql,$params);
-    // Sahibi bazlı sayım
-    $sahipStat=[];
+    // Veritabanından gelen verileri dönüştür
+    $transformedRows = [];
     foreach($rows as $r){
+        // Durumu dönüştür
+        if(($r['DURUMU']??'') === 'Yapıldı') {
+            $r['DURUMU'] = 'Tamamlandı';
+        }
+        $transformedRows[] = $r;
+        
         $s=$r['AKTIVITE_SAHIBI']??'Belirsiz';
         if(!isset($sahipStat[$s])) $sahipStat[$s]=['toplam'=>0,'yapildi'=>0,'yapilacak'=>0];
         $sahipStat[$s]['toplam']++;
-        if(($r['DURUMU']??'')==='Yapıldı')    $sahipStat[$s]['yapildi']++;
-        if(($r['DURUMU']??'')==='Yapılacak')  $sahipStat[$s]['yapilacak']++;
+        $durum = $r['DURUMU']??'';
+        if($durum==='Yapıldı' || $durum==='Tamamlandı') {
+            $sahipStat[$s]['yapildi']++;
+        }
+        if($durum==='Yapılacak')  $sahipStat[$s]['yapilacak']++;
     }
-    echo json_encode(['rows'=>$rows,'kpi'=>['sayi'=>count($rows),'yapildi'=>count(array_filter($rows,fn($r)=>($r['DURUMU']??'')==='Yapıldı')),'yapilacak'=>count(array_filter($rows,fn($r)=>($r['DURUMU']??'')==='Yapılacak')),'firsat'=>count(array_filter($rows,fn($r)=>!empty($r['FIRSATADI']))),'sahip_stat'=>$sahipStat]],JSON_UNESCAPED_UNICODE);
+    
+    // Dönüştürülmüş verileri say
+    echo json_encode([
+        'rows'=>$transformedRows,
+        'kpi'=>[
+            'sayi'=>count($transformedRows),
+            'yapildi'=>count(array_filter($transformedRows,fn($r)=>($r['DURUMU']??'')==='Tamamlandı')),
+            'yapilacak'=>count(array_filter($transformedRows,fn($r)=>($r['DURUMU']??'')==='Yapılacak')),
+            'firsat'=>count(array_filter($transformedRows,fn($r)=>!empty($r['FIRSATADI']))),
+            'sahip_stat'=>$sahipStat
+        ]
+    ],JSON_UNESCAPED_UNICODE);
 } catch(Exception $e){ http_response_code(500); echo json_encode(['error'=>$e->getMessage()]); }

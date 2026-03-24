@@ -79,7 +79,7 @@ function processFile(file) {
     ];
     charts.marka = groupSum(rows, r => r.MARKASI, tutar).slice(0, 7);
   } else if (file.target === 'crm') {
-    kpi.yapildi = rows.filter(r => r.DURUMU === 'Yapıldı').length;
+    kpi.yapildi = rows.filter(r => r.DURUMU === 'Yapıldı' || r.DURUMU === 'Tamamlandı').length;
     kpi.yapilacak = rows.filter(r => r.DURUMU === 'Yapılacak').length;
     kpi.firsat = rows.filter(r => !!r.FIRSATADI).length;
 

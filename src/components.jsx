@@ -1,4 +1,5 @@
 import { useState } from "react";
+import React from "react";
 import { ResponsiveContainer, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
 import * as XLSX from "xlsx";
 
@@ -55,6 +56,133 @@ export function KPICard({ label, value, sub, icon, color, bg, prefix="", suffix=
   );
 }
 
+// ── AUTO COMPLETE ────────────────────────────────────────────
+export function AutoComplete({ value, onChange, options, placeholder, color }) {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const [filtered, setFiltered] = React.useState([]);
+  const [highlighted, setHighlighted] = React.useState(-1);
+
+  const handleInputChange = (input) => {
+    onChange(input);
+    if (input.length > 0) {
+      const filtered = options.filter(option => 
+        option.toLowerCase().includes(input.toLowerCase())
+      ).slice(0, 10);
+      setFiltered(filtered);
+      setIsOpen(true);
+      setHighlighted(-1);
+    } else {
+      setFiltered([]);
+      setIsOpen(false);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (!isOpen) return;
+    
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setHighlighted(prev => (prev + 1) % filtered.length);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlighted(prev => prev <= 0 ? filtered.length - 1 : prev - 1);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (highlighted >= 0) {
+        onChange(filtered[highlighted]);
+        setIsOpen(false);
+        setFiltered([]);
+        setHighlighted(-1);
+      }
+    } else if (e.key === 'Escape') {
+      setIsOpen(false);
+      setFiltered([]);
+      setHighlighted(-1);
+    }
+  };
+
+  const handleSelect = (option) => {
+    onChange(option);
+    setIsOpen(false);
+    setFiltered([]);
+    setHighlighted(-1);
+  };
+
+  return (
+    <div style={{ position: 'relative', width: '100%' }}>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => handleInputChange(e.target.value)}
+        onKeyDown={handleKeyDown}
+        onFocus={() => {
+          if (value.length > 0) {
+            const filtered = options.filter(option => 
+              option.toLowerCase().includes(value.toLowerCase())
+            ).slice(0, 10);
+            setFiltered(filtered);
+            setIsOpen(true);
+          }
+        }}
+        onBlur={() => {
+          setTimeout(() => {
+            setIsOpen(false);
+            setFiltered([]);
+            setHighlighted(-1);
+          }, 200);
+        }}
+        placeholder={placeholder}
+        style={{
+          padding: "6px 10px",
+          borderRadius: 8,
+          border: "1px solid #e2e8f0",
+          fontSize: 12,
+          color: "#334155",
+          background: "#f8fafc",
+          width: "100%",
+          fontFamily: "inherit",
+          outline: "none",
+          boxShadow: isOpen ? `0 0 0 2px ${color}20` : "none"
+        }}
+      />
+      {isOpen && filtered.length > 0 && (
+        <div style={{
+          position: 'absolute',
+          top: '100%',
+          left: 0,
+          right: 0,
+          background: '#fff',
+          border: '1px solid #e2e8f0',
+          borderRadius: 8,
+          marginTop: 4,
+          maxHeight: 200,
+          overflowY: 'auto',
+          zIndex: 1000,
+          boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+        }}>
+          {filtered.map((option, index) => (
+            <div
+              key={option}
+              onMouseDown={() => handleSelect(option)}
+              onMouseEnter={() => setHighlighted(index)}
+              style={{
+                padding: '8px 12px',
+                cursor: 'pointer',
+                background: index === highlighted ? `${color}10` : '#fff',
+                fontSize: 12,
+                color: '#334155',
+                borderBottom: index < filtered.length - 1 ? '1px solid #f1f5f9' : 'none'
+              }}
+            >
+              {option}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── FILTER BAR ────────────────────────────────────────────
 export function FilterBar({ filters, values, onChange, onReset, color, onApply, loading }) {
   return (
@@ -70,6 +198,14 @@ export function FilterBar({ filters, values, onChange, onReset, color, onApply, 
                 <option value="">Tümü</option>
                 {f.options?.map(o=><option key={o} value={o}>{o}</option>)}
               </select>
+            ) : f.type==="autocomplete" ? (
+              <AutoComplete 
+                value={values[f.key]||""} 
+                onChange={v=>onChange(f.key,v)} 
+                options={f.options||[]} 
+                placeholder={f.placeholder||""}
+                color={color}
+              />
             ) : (
               <input type={f.type||"text"} placeholder={f.placeholder||""} value={values[f.key]||""}
                 onChange={e=>onChange(f.key,e.target.value)}
@@ -255,6 +391,51 @@ export async function apiFetch(url, filters, type = "all") {
       let rows = d.rows || [];
       
       // Client-side filtering (Apply even when loading from local JSON)
+      if (filters.quick_date || filters.tarih_bas || filters.tarih_bit) {
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const weekStart = new Date(today);
+        weekStart.setDate(today.getDate() - today.getDay());
+        const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+        const yearStart = new Date(today.getFullYear(), 0, 1);
+        
+        let basTarih = null;
+        let bitTarih = null;
+        
+        if (filters.quick_date === "bugun") {
+          basTarih = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+          bitTarih = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+        } else if (filters.quick_date === "dun") {
+          basTarih = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate());
+          bitTarih = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        } else if (filters.quick_date === "bu_hafta") {
+          basTarih = weekStart;
+          bitTarih = new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000);
+        } else if (filters.quick_date === "bu_ay") {
+          basTarih = monthStart;
+          bitTarih = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+        } else if (filters.quick_date === "bu_yil") {
+          basTarih = yearStart;
+          bitTarih = new Date(today.getFullYear() + 1, 0, 1);
+        } else if (filters.tarih_bas || filters.tarih_bit) {
+          basTarih = filters.tarih_bas ? new Date(filters.tarih_bas) : null;
+          bitTarih = filters.tarih_bit ? new Date(filters.tarih_bit) : null;
+          if (bitTarih) bitTarih = new Date(bitTarih.getTime() + 24 * 60 * 60 * 1000);
+        }
+        
+        if (basTarih || bitTarih) {
+          rows = rows.filter(r => {
+            const tarih = r.TARIH || r.BASLAMA || r.TARIHI || r.FATURA_TARIHI || r.SIPARIS_TARIHI || r.TEKLIFF_TARIHI || r.STOK_TARIHI;
+            if (!tarih) return true;
+            const rowDate = new Date(tarih);
+            if (basTarih && rowDate < basTarih) return false;
+            if (bitTarih && rowDate >= bitTarih) return false;
+            return true;
+          });
+        }
+      }
+      
       if (filters.musteri) {
         const m = filters.musteri.toLowerCase();
         rows = rows.filter(r => (r.TICARI_UNVANI||"").toLowerCase().includes(m));
@@ -269,6 +450,17 @@ export async function apiFetch(url, filters, type = "all") {
       if (filters.marka) rows = rows.filter(r => r.MARKASI === filters.marka);
       if (filters.model) rows = rows.filter(r => r.MODELI === filters.model);
       if (filters.il) rows = rows.filter(r => r.ILI === filters.il);
+      
+      // CRM specific filters
+      if (baseName === "crm") {
+        if (filters.durum) rows = rows.filter(r => r.DURUMU === filters.durum);
+        if (filters.tipi) rows = rows.filter(r => r.TIPI === filters.tipi);
+        if (filters.sahip) rows = rows.filter(r => r.AKTIVITE_SAHIBI === filters.sahip);
+        if (filters.musteri) {
+          const m = filters.musteri.toLowerCase();
+          rows = rows.filter(r => (r.TICARI_UNVANI||"").toLowerCase().includes(m));
+        }
+      }
 
       // Recalculate KPIs based on filtered rows if any filter is active
       const hasFilter = Object.keys(filters).length > 0;
@@ -293,6 +485,10 @@ export async function apiFetch(url, filters, type = "all") {
           recKpi.toplam = rows.reduce((s, r) => s + (parseFloat(r.DVZ_IND_TUTAR) || 0), 0);
           recKpi.acik = rows.filter(r => String(r.TEKLIF_DURUMU||"").includes("Açık") || String(r.TEKLIF_DURUMU||"").includes("Teklifte")).length;
           recKpi.kapali = rows.filter(r => String(r.TEKLIF_DURUMU||"").includes("Onay") || String(r.TEKLIF_DURUMU||"").includes("Aktarıldı")).length;
+        } else if (baseName === "crm") {
+          recKpi.yapildi = rows.filter(r => r.DURUMU === 'Tamamlandı').length;
+          recKpi.yapilacak = rows.filter(r => r.DURUMU === 'Yapılacak').length;
+          recKpi.firsat = rows.filter(r => r.FIRSATADI).length;
         }
       }
 

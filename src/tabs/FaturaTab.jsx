@@ -16,18 +16,26 @@ export default function FaturaTab() {
 
   async function load(f=filters){
     setLoading(true);
-    // 1. Summary
-    const s = await apiFetch("/api/fatura.php", f, "summary");
-    if (s) { setKpi(s.kpi || {}); setCharts(s.charts || {}); }
+    try {
+      // 1. Summary
+      const s = await apiFetch("/api/fatura.php", f, "summary");
+      if (s) { setKpi(s.kpi || {}); setCharts(s.charts || {}); }
 
-    // 2. Full
-    const d = await apiFetch("/api/fatura.php", f);
-    if(d){ 
-      setRows(d.rows||[]); 
-      setKpi(d.kpi||{});
-      if (d.rows?.length > 0) setCharts({});
+      // 2. Full
+      const d = await apiFetch("/api/fatura.php", f);
+      if(d){ 
+        setRows(d.rows||[]); 
+        setKpi(d.kpi||{});
+        if (d.rows?.length > 0) setCharts({});
+      }
+    } catch (error) {
+      console.error('Fatura veri yükleme hatası:', error);
+      setRows([]);
+      setKpi({});
+      setCharts({});
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   useEffect(()=>{load();},[]);

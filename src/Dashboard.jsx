@@ -8,7 +8,7 @@ import StokTab           from "./tabs/StokTab.jsx";
 import FaturaTab         from "./tabs/FaturaTab.jsx";
 import SiparisTab        from "./tabs/SiparisTab.jsx";
 import CrmTab            from "./tabs/CrmTab.jsx";
-import ExcelUploadPanel  from "./components/ExcelUploadPanel.jsx";
+import CariDetayTab      from "./tabs/CariDetayTab.jsx";
 
 const TABS=[
   {id:"genel",     label:"Genel Bakış",       icon:"🏠", color:"#0f172a", component:OverviewTab},
@@ -21,14 +21,22 @@ const TABS=[
   {id:"crm",       label:"CRM",               icon:"👥", color:"#ec4899", component:CrmTab},
 ];
 
-const ADMIN_TAB={id:"upload", label:"Veri Güncelle", icon:"⬆️", color:"#059669", component:ExcelUploadPanel};
-
 export default function Dashboard() {
   const [user,setUser]=useState(null);
   const [active,setActive]=useState("genel");
   const [checking,setChecking]=useState(true);
+  const [cariDetay, setCariDetay] = useState(null);
 
   useEffect(()=>{
+    // URL parametrelerini kontrol et
+    const urlParams = new URLSearchParams(window.location.search);
+    const cariKodu = urlParams.get('kodu');
+    const cariUnvan = urlParams.get('unvan');
+    
+    if (cariKodu && cariUnvan) {
+      setCariDetay({ kodu: decodeURIComponent(cariKodu), unvan: decodeURIComponent(cariUnvan) });
+    }
+    
     fetch("/api/login.php",{credentials:"include"})
       .then(r=>r.json()).then(d=>{if(d.ok)setUser(d.user);}).finally(()=>setChecking(false));
   },[]);
@@ -41,6 +49,36 @@ export default function Dashboard() {
     </div>
   );
   if(!user) return <Login onLogin={setUser}/>;
+
+  // Eğer cari detay sayfası ise
+  if (cariDetay) {
+    return (
+      <div style={{minHeight:"100vh",background:"#f1f5f9",fontFamily:"'Plus Jakarta Sans',system-ui,sans-serif"}}>
+        <header style={{background:"#fff",borderBottom:"1px solid #e2e8f0",padding:"0 2rem",display:"flex",alignItems:"center",justifyContent:"space-between",height:54,position:"sticky",top:0,zIndex:100,boxShadow:"0 1px 4px rgba(0,0,0,0.04)"}}>
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            <div style={{width:32,height:32,background:"#8b5cf6",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center"}}>
+              <span style={{color:"#fff",fontWeight:700,fontSize:12}}>IS</span>
+            </div>
+            <div>
+              <div style={{fontSize:14,fontWeight:700,color:"#0f172a",lineHeight:1.2}}>ISAC Sense Digital</div>
+              <div style={{fontSize:10,color:"#94a3b8",letterSpacing:"0.05em"}}>CARİ DETAY</div>
+            </div>
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:14}}>
+            <div style={{fontSize:12,color:"#64748b",display:"flex",alignItems:"center",gap:5}}>
+              <span style={{width:7,height:7,borderRadius:"50%",background:"#10b981",display:"inline-block"}}/>
+              Wolvox ERP · {new Date().toLocaleDateString("tr-TR")}
+            </div>
+            <div style={{fontSize:12,color:"#334155"}}>👤 <b>{user}</b></div>
+            <button onClick={logout} style={{fontSize:12,padding:"5px 12px",borderRadius:8,border:"1px solid #e2e8f0",background:"#f8fafc",color:"#64748b",cursor:"pointer",fontFamily:"inherit"}}>Çıkış</button>
+          </div>
+        </header>
+        <main style={{padding:"1.5rem 2rem",maxWidth:1700,margin:"0 auto"}}>
+          <CariDetayTab cariKodu={cariDetay.kodu} cariUnvan={cariDetay.unvan} />
+        </main>
+      </div>
+    );
+  }
 
   const AT=TABS.find(t=>t.id===active);
 
@@ -66,7 +104,7 @@ export default function Dashboard() {
         </div>
       </header>
       <nav style={{background:"#fff",borderBottom:"1px solid #e2e8f0",padding:"0 2rem",display:"flex",gap:2,overflowX:"auto",position:"sticky",top:54,zIndex:99}}>
-        {[...TABS,...(user==="admin"?[ADMIN_TAB]:[])].map(t=>{
+        {TABS.map(t=>{
           const on=active===t.id;
           return(
             <button key={t.id} onClick={()=>setActive(t.id)} style={{
@@ -82,7 +120,7 @@ export default function Dashboard() {
         })}
       </nav>
       <main style={{padding:"1.5rem 2rem",maxWidth:1700,margin:"0 auto"}}>
-        {active==="upload" ? <ExcelUploadPanel/> : AT && <AT.component/>}
+        {AT && <AT.component/>}
       </main>
     </div>
   );

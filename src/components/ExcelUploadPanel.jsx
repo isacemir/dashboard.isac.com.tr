@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import * as XLSX from "xlsx";
 
 const EXCEL_TARGETS = [
   { id: "satis",            label: "Satış Raporu",          icon: "📦", file: "satis-raporu.xlsx" },
@@ -15,33 +16,113 @@ export default function ExcelUploadPanel() {
   const [file, setFile]           = useState(null);
   const [dragging, setDragging]   = useState(false);
   const [loading, setLoading]     = useState(false);
+  const [converting, setConverting] = useState(false);
+  const [progress, setProgress]   = useState(0);
   const [result, setResult]       = useState(null); // {ok, message, rows, lastSync}
   const inputRef = useRef();
 
   const selectedTarget = EXCEL_TARGETS.find(t => t.id === target);
 
+  // Client-side Excel to JSON conversion
+  async function convertExcelToJson(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      
+      reader.onload = (e) => {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const sheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[sheetName];
+          
+          // Convert to JSON with progress tracking
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, {
+            header: 1,
+            defval: null,
+            raw: false
+          });
+          
+          // Process headers and rows
+          if (jsonData.length === 0) {
+            reject(new Error('Excel dosyası boş'));
+            return;
+          }
+          
+          const headers = jsonData[0].map(h => String(h || '').trim());
+          const rows = jsonData.slice(1).map(row => {
+            const obj = {};
+            headers.forEach((header, index) => {
+              if (header) {
+                obj[header] = row[index] || null;
+              }
+            });
+            return obj;
+          }).filter(row => Object.keys(row).length > 0);
+          
+          resolve(rows);
+        } catch (error) {
+          reject(new Error('Excel dosyası okunamadı: ' + error.message));
+        }
+      };
+      
+      reader.onerror = () => reject(new Error('Dosya okunamadı'));
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
   function handleDrop(e) {
     e.preventDefault();
     setDragging(false);
     const f = e.dataTransfer.files[0];
-    if (f) setFile(f);
+    if (f) {
+      // File size validation (max 50MB)
+      if (f.size > 50 * 1024 * 1024) {
+        setResult({ ok: false, error: 'Dosya boyutu 50MB\'dan büyük olamaz.' });
+        return;
+      }
+      setFile(f);
+    }
   }
 
   async function handleUpload() {
     if (!file) return;
-    setLoading(true);
+    setConverting(true);
+    setProgress(0);
     setResult(null);
-    const fd = new FormData();
-    fd.append("target", target);
-    fd.append("excel", file);
+    
     try {
-      const res = await fetch("/api/upload.php", { method: "POST", credentials: "include", body: fd });
+      // Step 1: Convert Excel to JSON on client-side
+      setProgress(25);
+      const rows = await convertExcelToJson(file);
+      setProgress(50);
+      
+      // Step 2: Send JSON data to server (much smaller than Excel file)
+      setProgress(75);
+      const payload = {
+        target: target,
+        data: rows,
+        fileName: file.name
+      };
+      
+      const res = await fetch("/api/upload-json.php", { 
+        method: "POST", 
+        credentials: "include", 
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+      
       const data = await res.json();
+      setProgress(100);
       setResult(data);
-    } catch {
-      setResult({ ok: false, error: "Sunucuya ulaşılamadı." });
+    } catch (error) {
+      setResult({ ok: false, error: error.message });
+    } finally {
+      setConverting(false);
+      setLoading(false);
+      setProgress(0);
     }
-    setLoading(false);
   }
 
   const S = {
@@ -67,6 +148,17 @@ export default function ExcelUploadPanel() {
       cursor: disabled ? "not-allowed" : "pointer", fontFamily: "inherit",
       transition: "opacity 0.15s", boxShadow: disabled ? "none" : "0 4px 15px rgba(14,165,233,0.25)",
     }),
+    progress: {
+      width: "100%", height: 6, backgroundColor: "#e2e8f0", borderRadius: 3,
+      overflow: "hidden", marginBottom: 16, marginTop: 8
+    },
+    progressBar: {
+      height: "100%", backgroundColor: "#0ea5e9", borderRadius: 3,
+      transition: "width 0.3s ease", minWidth: "2%"
+    },
+    progressText: {
+      fontSize: 12, color: "#64748b", textAlign: "center", marginTop: 4
+    },
     success: { borderRadius: 12, padding: "14px 18px", background: "#f0fdf4", border: "1px solid #86efac", color: "#166534", fontSize: 13, marginTop: 16 },
     error:   { borderRadius: 12, padding: "14px 18px", background: "#fef2f2", border: "1px solid #fca5a5", color: "#991b1b", fontSize: 13, marginTop: 16 },
     grid:    { display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12, marginTop: 12 },
@@ -103,11 +195,37 @@ export default function ExcelUploadPanel() {
             : <><div style={S.dzText}><span style={S.dzBold}>Dosya seçin</span> veya buraya sürükleyin</div><div style={{ ...S.dzText, fontSize: 12, marginTop: 6 }}>.xlsx, .xls formatında — {selectedTarget?.file}</div></>
           }
         </div>
-        <input ref={inputRef} type="file" accept=".xlsx,.xls" style={{ display: "none" }} onChange={e => { setFile(e.target.files[0]); setResult(null); }} />
+        <input ref={inputRef} type="file" accept=".xlsx,.xls" style={{ display: "none" }} onChange={e => { 
+          const f = e.target.files[0];
+          if (f) {
+            if (f.size > 50 * 1024 * 1024) {
+              setResult({ ok: false, error: 'Dosya boyutu 50MB\'dan büyük olamaz.' });
+              return;
+            }
+            setFile(f);
+            setResult(null);
+          }
+        }} />
+
+        {/* Progress Bar */}
+        {converting && (
+          <div>
+            <div style={S.progress}>
+              <div style={{ ...S.progressBar, width: `${progress}%` }}></div>
+            </div>
+            <div style={S.progressText}>
+              {progress < 25 ? 'Hazırlanıyor...' : 
+               progress < 50 ? 'Excel okunuyor...' :
+               progress < 75 ? 'Veri işleniyor...' :
+               progress < 100 ? 'Sunucuya gönderiliyor...' : 'Tamamlandı!'}
+            </div>
+          </div>
+        )}
 
         {/* Upload Button */}
-        <button style={S.btn(!file || loading)} onClick={handleUpload} disabled={!file || loading}>
-          {loading ? "⏳ Dönüştürülüyor..." : "🚀 Yükle ve Güncelle"}
+        <button style={S.btn(!file || converting || loading)} onClick={handleUpload} disabled={!file || converting || loading}>
+          {converting ? `🔄 ${progress < 50 ? 'Dönüştürülüyor...' : 'Gönderiliyor...'} (${progress}%)` : 
+           loading ? "⏳ İşleniyor..." : "🚀 Yükle ve Güncelle"}
         </button>
 
         {/* Result */}

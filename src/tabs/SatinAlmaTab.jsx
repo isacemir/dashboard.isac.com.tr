@@ -23,18 +23,26 @@ function SatinAlmaFatura() {
 
   async function load(f=filters){
     setLoading(true);
-    // 1. Summary
-    const s = await apiFetch("/api/satinalma_fatura.php", f, "summary");
-    if (s) { setKpi(s.kpi || {}); setCharts(s.charts || {}); }
+    try {
+      // 1. Summary
+      const s = await apiFetch("/api/satinalma_fatura.php", f, "summary");
+      if (s) { setKpi(s.kpi || {}); setCharts(s.charts || {}); }
 
-    // 2. Full
-    const d=await apiFetch("/api/satinalma_fatura.php",f);
-    if(d){ 
-      setRows(d.rows||[]); 
-      setKpi(d.kpi||{});
-      if (d.rows?.length > 0) setCharts({});
+      // 2. Full
+      const d=await apiFetch("/api/satinalma_fatura.php",f);
+      if(d){ 
+        setRows(d.rows||[]); 
+        setKpi(d.kpi||{});
+        if (d.rows?.length > 0) setCharts({});
+      }
+    } catch (error) {
+      console.error('Satın alma veri yükleme hatası:', error);
+      setRows([]);
+      setKpi({});
+      setCharts({});
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   useEffect(()=>{load();},[]);
