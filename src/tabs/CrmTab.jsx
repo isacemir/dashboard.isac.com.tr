@@ -282,7 +282,15 @@ export default function CrmTab() {
                     display:"flex",alignItems:"center",justifyContent:"center",
                     fontSize:13,fontWeight:700,color:COLOR,flexShrink:0,
                   }}>{name.slice(0,2).toUpperCase()}</div>
-                  <div style={{fontSize:12,fontWeight:600,color:"#0f172a",lineHeight:1.3}}>{name}</div>
+                  <div style={{fontSize:12,fontWeight:600,color:"#0f172a",lineHeight:1.3,cursor:"pointer",textDecoration:"underline"}}
+                       onClick={(e) => {
+                         e.stopPropagation();
+                         // Kullanıcı detay sayfasına yönlendir
+                         window.location.href = `/kullanici-detay?adi=${encodeURIComponent(name)}`;
+                       }}
+                       title={`${name} kullanıcısının detaylarını görüntüle`}>
+                    {name}
+                  </div>
                 </div>
                 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:4,fontSize:11,marginBottom:8}}>
                   <div style={{color:"#64748b"}}>Toplam</div>   <div style={{fontWeight:700,color:"#0f172a"}}>{s.toplam}</div>
@@ -361,7 +369,16 @@ export default function CrmTab() {
             <span style={{width:22,height:22,borderRadius:"50%",background:`${COLOR}20`,display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:700,color:COLOR}}>
               {String(v||"?").slice(0,2).toUpperCase()}
             </span>
-            {v}
+            <span 
+              onClick={() => {
+                // Kullanıcı detay sayfasına yönlendir
+                window.location.href = `/kullanici-detay?adi=${encodeURIComponent(v || '')}`;
+              }}
+              style={{color:COLOR,cursor:"pointer",textDecoration:"underline",fontWeight:600}}
+              title={`${v} kullanıcısının detaylarını görüntüle`}
+            >
+              {v}
+            </span>
           </span>
         )},
         {key:"TICARI_UNVANI",  label:"Firma", render:v=><span 

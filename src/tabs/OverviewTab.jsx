@@ -75,7 +75,16 @@ export default function OverviewTab() {
               {(data.satis.charts?.bolge || []).slice(0, 5).map((b,i) => (
                 <div key={i} style={{marginBottom: 12}}>
                   <div style={{display:"flex", justifyContent:"space-between", fontSize: 11, marginBottom: 4}}>
-                    <span style={{fontWeight: 600}}>{b.name}</span>
+                    <span 
+                      style={{fontWeight: 600, color: "#ef4444", cursor: "pointer", textDecoration: "underline"}}
+                      onClick={() => {
+                        // Satış siparişleri sayfasına git ve bölge filtresi uygula
+                        window.location.href = `/?tab=satis&bolge=${encodeURIComponent(b.name)}`;
+                      }}
+                      title={`${b.name} bölgesindeki satışları görüntüle`}
+                    >
+                      {b.name}
+                    </span>
                     <span>€{(b.val/1000).toFixed(1)}K</span>
                   </div>
                   <div style={{height:6, background: "#f1f5f9", borderRadius: 3, overflow:"hidden"}}>

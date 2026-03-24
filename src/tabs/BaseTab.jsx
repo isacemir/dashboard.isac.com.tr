@@ -31,7 +31,7 @@ const TEK_DURUM = {
 };
 
 // ── SİPARİŞ BAZLI SEKME (Satış Siparişleri, Sipariş Raporu, Satınalma Sipariş) ──
-export function SiparisTab({ apiUrl, color, filename, title }) {
+export function SiparisTab({ apiUrl, color, filename, title, urlFilters }) {
   const [rows,setRows]=useState([]);
   const [kpi,setKpi]=useState({});
   const [charts,setCharts]=useState({});
@@ -65,7 +65,21 @@ export function SiparisTab({ apiUrl, color, filename, title }) {
     }
   }
 
-  useEffect(()=>{load();},[]);
+  useEffect(()=>{
+    // URL filtrelerini state'e uygula
+    if (urlFilters && Object.keys(urlFilters).length > 0) {
+      setFilters(urlFilters);
+    }
+    load();
+  }, []);
+
+  useEffect(()=>{
+    // URL filtreleri değiştiğinde verileri yeniden yükle
+    if (urlFilters && Object.keys(urlFilters).length > 0) {
+      setFilters(urlFilters);
+      load(urlFilters);
+    }
+  }, [urlFilters]);
 
   function tutar(r){
     const sd=filters.siparis_durumu||"";
