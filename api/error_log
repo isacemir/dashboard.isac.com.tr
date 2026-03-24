@@ -1,0 +1,156 @@
+[23-Mar-2026 08:42:08 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Undefined constant "SQLSRV_PARAM_IN" in /home/isaccom/dashboard.isac.com.tr/api/satis_siparis.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/isaccom/dashboard.isac.com.tr/api/satis_siparis.php on line 12
+[23-Mar-2026 08:42:10 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Undefined constant "SQLSRV_PARAM_IN" in /home/isaccom/dashboard.isac.com.tr/api/satinalma_siparis.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/isaccom/dashboard.isac.com.tr/api/satinalma_siparis.php on line 12
+[23-Mar-2026 08:42:11 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Undefined constant "SQLSRV_PARAM_IN" in /home/isaccom/dashboard.isac.com.tr/api/teklif.php:15
+Stack trace:
+#0 {main}
+  thrown in /home/isaccom/dashboard.isac.com.tr/api/teklif.php on line 15
+[23-Mar-2026 08:42:12 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Call to undefined function sqlsrv_connect() in /home/isaccom/dashboard.isac.com.tr/api/config.php:58
+Stack trace:
+#0 /home/isaccom/dashboard.isac.com.tr/api/config.php(70): getConn()
+#1 /home/isaccom/dashboard.isac.com.tr/api/stok.php(22): runQuery()
+#2 {main}
+  thrown in /home/isaccom/dashboard.isac.com.tr/api/config.php on line 58
+[23-Mar-2026 08:42:12 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Undefined constant "SQLSRV_PARAM_IN" in /home/isaccom/dashboard.isac.com.tr/api/fatura.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/isaccom/dashboard.isac.com.tr/api/fatura.php on line 12
+[23-Mar-2026 08:42:12 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Undefined constant "SQLSRV_PARAM_IN" in /home/isaccom/dashboard.isac.com.tr/api/crm.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/isaccom/dashboard.isac.com.tr/api/crm.php on line 12
+[23-Mar-2026 08:42:13 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Undefined constant "SQLSRV_PARAM_IN" in /home/isaccom/dashboard.isac.com.tr/api/satis_siparis.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/isaccom/dashboard.isac.com.tr/api/satis_siparis.php on line 12
+[23-Mar-2026 08:42:14 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Undefined constant "SQLSRV_PARAM_IN" in /home/isaccom/dashboard.isac.com.tr/api/satis_siparis.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/isaccom/dashboard.isac.com.tr/api/satis_siparis.php on line 12
+[23-Mar-2026 08:42:15 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Undefined constant "SQLSRV_PARAM_IN" in /home/isaccom/dashboard.isac.com.tr/api/satis_siparis.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/isaccom/dashboard.isac.com.tr/api/satis_siparis.php on line 12
+[23-Mar-2026 08:42:16 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Undefined constant "SQLSRV_PARAM_IN" in /home/isaccom/dashboard.isac.com.tr/api/satinalma_siparis.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/isaccom/dashboard.isac.com.tr/api/satinalma_siparis.php on line 12
+[23-Mar-2026 08:42:17 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Undefined constant "SQLSRV_PARAM_IN" in /home/isaccom/dashboard.isac.com.tr/api/satis_siparis.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/isaccom/dashboard.isac.com.tr/api/satis_siparis.php on line 12
+[23-Mar-2026 08:42:17 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Undefined constant "SQLSRV_PARAM_IN" in /home/isaccom/dashboard.isac.com.tr/api/satinalma_siparis.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/isaccom/dashboard.isac.com.tr/api/satinalma_siparis.php on line 12
+[23-Mar-2026 08:42:19 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Undefined constant "SQLSRV_PARAM_IN" in /home/isaccom/dashboard.isac.com.tr/api/teklif.php:15
+Stack trace:
+#0 {main}
+  thrown in /home/isaccom/dashboard.isac.com.tr/api/teklif.php on line 15
+[23-Mar-2026 08:42:19 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Call to undefined function sqlsrv_connect() in /home/isaccom/dashboard.isac.com.tr/api/config.php:58
+Stack trace:
+#0 /home/isaccom/dashboard.isac.com.tr/api/config.php(70): getConn()
+#1 /home/isaccom/dashboard.isac.com.tr/api/stok.php(22): runQuery()
+#2 {main}
+  thrown in /home/isaccom/dashboard.isac.com.tr/api/config.php on line 58
+[23-Mar-2026 08:42:19 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Undefined constant "SQLSRV_PARAM_IN" in /home/isaccom/dashboard.isac.com.tr/api/fatura.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/isaccom/dashboard.isac.com.tr/api/fatura.php on line 12
+[23-Mar-2026 08:42:19 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Undefined constant "SQLSRV_PARAM_IN" in /home/isaccom/dashboard.isac.com.tr/api/satis_siparis.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/isaccom/dashboard.isac.com.tr/api/satis_siparis.php on line 12
+[23-Mar-2026 08:42:20 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Undefined constant "SQLSRV_PARAM_IN" in /home/isaccom/dashboard.isac.com.tr/api/crm.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/isaccom/dashboard.isac.com.tr/api/crm.php on line 12
+[23-Mar-2026 08:42:24 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Undefined constant "SQLSRV_PARAM_IN" in /home/isaccom/dashboard.isac.com.tr/api/satis_siparis.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/isaccom/dashboard.isac.com.tr/api/satis_siparis.php on line 12
+[23-Mar-2026 08:46:24 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Undefined constant "SQLSRV_PARAM_IN" in /home/isaccom/dashboard.isac.com.tr/api/satis_siparis.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/isaccom/dashboard.isac.com.tr/api/satis_siparis.php on line 12
+[23-Mar-2026 11:56:53 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Undefined constant "SQLSRV_PARAM_IN" in /home/isaccom/dashboard.isac.com.tr/api/satis_siparis.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/isaccom/dashboard.isac.com.tr/api/satis_siparis.php on line 12
+[23-Mar-2026 11:56:59 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Undefined constant "SQLSRV_PARAM_IN" in /home/isaccom/dashboard.isac.com.tr/api/satinalma_siparis.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/isaccom/dashboard.isac.com.tr/api/satinalma_siparis.php on line 12
+[23-Mar-2026 11:57:01 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Call to undefined function sqlsrv_connect() in /home/isaccom/dashboard.isac.com.tr/api/config.php:58
+Stack trace:
+#0 /home/isaccom/dashboard.isac.com.tr/api/config.php(70): getConn()
+#1 /home/isaccom/dashboard.isac.com.tr/api/stok.php(22): runQuery()
+#2 {main}
+  thrown in /home/isaccom/dashboard.isac.com.tr/api/config.php on line 58
+[23-Mar-2026 11:57:02 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Undefined constant "SQLSRV_PARAM_IN" in /home/isaccom/dashboard.isac.com.tr/api/satis_siparis.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/isaccom/dashboard.isac.com.tr/api/satis_siparis.php on line 12
+[23-Mar-2026 11:57:03 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Undefined constant "SQLSRV_PARAM_IN" in /home/isaccom/dashboard.isac.com.tr/api/crm.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/isaccom/dashboard.isac.com.tr/api/crm.php on line 12
+[23-Mar-2026 11:57:04 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Undefined constant "SQLSRV_PARAM_IN" in /home/isaccom/dashboard.isac.com.tr/api/satis_siparis.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/isaccom/dashboard.isac.com.tr/api/satis_siparis.php on line 12
+[23-Mar-2026 11:57:06 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Undefined constant "SQLSRV_PARAM_IN" in /home/isaccom/dashboard.isac.com.tr/api/satinalma_siparis.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/isaccom/dashboard.isac.com.tr/api/satinalma_siparis.php on line 12
+[23-Mar-2026 11:57:08 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Undefined constant "SQLSRV_PARAM_IN" in /home/isaccom/dashboard.isac.com.tr/api/teklif.php:15
+Stack trace:
+#0 {main}
+  thrown in /home/isaccom/dashboard.isac.com.tr/api/teklif.php on line 15
+[23-Mar-2026 11:57:12 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Call to undefined function sqlsrv_connect() in /home/isaccom/dashboard.isac.com.tr/api/config.php:58
+Stack trace:
+#0 /home/isaccom/dashboard.isac.com.tr/api/config.php(70): getConn()
+#1 /home/isaccom/dashboard.isac.com.tr/api/stok.php(22): runQuery()
+#2 {main}
+  thrown in /home/isaccom/dashboard.isac.com.tr/api/config.php on line 58
+[23-Mar-2026 11:57:13 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Undefined constant "SQLSRV_PARAM_IN" in /home/isaccom/dashboard.isac.com.tr/api/fatura.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/isaccom/dashboard.isac.com.tr/api/fatura.php on line 12
+[23-Mar-2026 11:57:14 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Undefined constant "SQLSRV_PARAM_IN" in /home/isaccom/dashboard.isac.com.tr/api/satis_siparis.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/isaccom/dashboard.isac.com.tr/api/satis_siparis.php on line 12
+[23-Mar-2026 11:57:15 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Undefined constant "SQLSRV_PARAM_IN" in /home/isaccom/dashboard.isac.com.tr/api/crm.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/isaccom/dashboard.isac.com.tr/api/crm.php on line 12
+[23-Mar-2026 11:57:17 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Undefined constant "SQLSRV_PARAM_IN" in /home/isaccom/dashboard.isac.com.tr/api/satis_siparis.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/isaccom/dashboard.isac.com.tr/api/satis_siparis.php on line 12
+[23-Mar-2026 11:57:22 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Undefined constant "SQLSRV_PARAM_IN" in /home/isaccom/dashboard.isac.com.tr/api/satinalma_siparis.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/isaccom/dashboard.isac.com.tr/api/satinalma_siparis.php on line 12
+[23-Mar-2026 11:57:23 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Undefined constant "SQLSRV_PARAM_IN" in /home/isaccom/dashboard.isac.com.tr/api/satinalma_teklif.php:15
+Stack trace:
+#0 {main}
+  thrown in /home/isaccom/dashboard.isac.com.tr/api/satinalma_teklif.php on line 15
+[23-Mar-2026 11:57:24 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Undefined constant "SQLSRV_PARAM_IN" in /home/isaccom/dashboard.isac.com.tr/api/satinalma_fatura.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/isaccom/dashboard.isac.com.tr/api/satinalma_fatura.php on line 12
+[23-Mar-2026 11:57:24 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Undefined constant "SQLSRV_PARAM_IN" in /home/isaccom/dashboard.isac.com.tr/api/satinalma_siparis.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/isaccom/dashboard.isac.com.tr/api/satinalma_siparis.php on line 12
+[23-Mar-2026 11:57:26 Europe/Istanbul] PHP Fatal error:  Uncaught Error: Undefined constant "SQLSRV_PARAM_IN" in /home/isaccom/dashboard.isac.com.tr/api/satis_siparis.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/isaccom/dashboard.isac.com.tr/api/satis_siparis.php on line 12

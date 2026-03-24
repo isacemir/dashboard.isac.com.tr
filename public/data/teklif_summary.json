@@ -1,0 +1,55 @@
+{
+  "kpi": {
+    "sayi": 11661,
+    "toplam": 6435028.326734561,
+    "acik": 4973,
+    "kapali": 6173
+  },
+  "charts": {
+    "durum": [
+      {
+        "name": "Açık",
+        "val": 4973
+      },
+      {
+        "name": "Kapalı",
+        "val": 6173
+      },
+      {
+        "name": "İptal",
+        "val": 94
+      }
+    ],
+    "marka": [
+      {
+        "name": "OMRON",
+        "val": 2087874.858406247
+      },
+      {
+        "name": "PANASONIC",
+        "val": 1549436.6321843318
+      },
+      {
+        "name": "TELEMECANIQUE",
+        "val": 898510.0478245334
+      },
+      {
+        "name": "Advantech",
+        "val": 688818
+      },
+      {
+        "name": "TMSS",
+        "val": 295161.12953719415
+      },
+      {
+        "name": "MUADİL",
+        "val": 286991.06507557683
+      },
+      {
+        "name": "Honeywell",
+        "val": 181856.60000000003
+      }
+    ]
+  },
+  "lastSync": "2026-03-23T13:15:42.665Z"
+}

@@ -1,0 +1,31 @@
+{
+  "kpi": {
+    "sayi": 3,
+    "toplam": 21865,
+    "acik": 1,
+    "kapali": 2
+  },
+  "charts": {
+    "durum": [
+      {
+        "name": "Açık",
+        "val": 1
+      },
+      {
+        "name": "Kapalı",
+        "val": 2
+      },
+      {
+        "name": "İptal",
+        "val": 0
+      }
+    ],
+    "marka": [
+      {
+        "name": "OMRON",
+        "val": 21865
+      }
+    ]
+  },
+  "lastSync": "2026-03-23T13:15:43.304Z"
+}

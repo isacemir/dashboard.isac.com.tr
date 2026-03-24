@@ -1,0 +1,60 @@
+{
+  "kpi": {
+    "sayi": 538,
+    "stokta": 192,
+    "kritik": 105,
+    "siparisteVarStokYok": 346
+  },
+  "charts": {
+    "kategori": [],
+    "durum": [
+      {
+        "name": "SIFIR BAKİYE - SATIN ALMA VAR",
+        "val": 241
+      },
+      {
+        "name": "STOK VAR - TESLİM EDİLMEMİŞ",
+        "val": 133
+      },
+      {
+        "name": "SIFIR BAKİYE - SATIN ALMA YOK",
+        "val": 105
+      },
+      {
+        "name": "STOK YETERSİZ - TESLİM EDİLECEK",
+        "val": 59
+      }
+    ],
+    "marka": [
+      {
+        "name": "OMRON",
+        "val": 17813
+      },
+      {
+        "name": "TELEMECANIQUE",
+        "val": 5424
+      },
+      {
+        "name": "Advantech",
+        "val": 832
+      },
+      {
+        "name": "MUADİL",
+        "val": 711
+      },
+      {
+        "name": "PANASONIC",
+        "val": 621
+      },
+      {
+        "name": "WEIDMULLER",
+        "val": 510
+      },
+      {
+        "name": "TMSS",
+        "val": 464
+      }
+    ]
+  },
+  "lastSync": "2026-03-23T13:15:43.471Z"
+}
