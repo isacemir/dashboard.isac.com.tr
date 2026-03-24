@@ -48,8 +48,8 @@ export default function CrmTab() {
   // Use pre-calculated activity if rows are not loaded
   let tipData = charts.aktivite || [];
 
+  const tipler = uniq("TIPI");
   if (rows.length > 0) {
-    const tipler = uniq("TIPI");
     tipData = tipler.map(t=>({name:t,val:rows.filter(r=>r.TIPI===t).length})).filter(t=>t.val>0);
   }
 
@@ -165,7 +165,7 @@ export default function CrmTab() {
         {key:"AKTIVITE_SAHIBI",label:"Personel",       render:v=>(
           <span style={{display:"inline-flex",alignItems:"center",gap:5}}>
             <span style={{width:22,height:22,borderRadius:"50%",background:`${COLOR}20`,display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:700,color:COLOR}}>
-              {(v||"?").slice(0,2).toUpperCase()}
+              {String(v||"?").slice(0,2).toUpperCase()}
             </span>
             {v}
           </span>

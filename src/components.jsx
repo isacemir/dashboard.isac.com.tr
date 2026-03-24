@@ -239,7 +239,9 @@ export async function apiFetch(url, filters, type = "all") {
   if (baseName) {
     try {
       // 1. Fetch Summary (KPIs and pre-calculated charts)
-      const s = await fetch(`/data/${baseName}_summary.json`);
+      const ts = Date.now();
+      const s = await fetch(`/data/${baseName}_summary.json?t=${ts}`);
+      if (!s.ok) throw new Error(`Local summary fetch failed with HTTP ${s.status}. Lutfen 'npm run dev' komutunu kapatip acin.`);
       const summary = await s.json();
       
       if (type === "summary") {
@@ -247,7 +249,8 @@ export async function apiFetch(url, filters, type = "all") {
       }
 
       // 2. Fetch Rows (The heavy data)
-      const r = await fetch(`/data/${baseName}_rows.json`);
+      const r = await fetch(`/data/${baseName}_rows.json?t=${ts}`);
+      if (!r.ok) throw new Error(`Local rows fetch failed with HTTP ${r.status}. Lutfen 'npm run dev' komutunu kapatip acin.`);
       const d = await r.json();
       let rows = d.rows || [];
       
@@ -288,14 +291,16 @@ export async function apiFetch(url, filters, type = "all") {
           recKpi.kritik = rows.filter(r => ["KRİTİK STOK", "SIFIR BAKİYE - SATIN ALMA YOK"].includes(r.DURUM || "")).length;
         } else if (baseName.includes("teklif")) {
           recKpi.toplam = rows.reduce((s, r) => s + (parseFloat(r.DVZ_IND_TUTAR) || 0), 0);
-          recKpi.acik = rows.filter(r => r.TEKLIF_DURUMU.includes("Açık") || r.TEKLIF_DURUMU.includes("Teklifte")).length;
-          recKpi.kapali = rows.filter(r => r.TEKLIF_DURUMU.includes("Onay") || r.TEKLIF_DURUMU.includes("Aktarıldı")).length;
+          recKpi.acik = rows.filter(r => String(r.TEKLIF_DURUMU||"").includes("Açık") || String(r.TEKLIF_DURUMU||"").includes("Teklifte")).length;
+          recKpi.kapali = rows.filter(r => String(r.TEKLIF_DURUMU||"").includes("Onay") || String(r.TEKLIF_DURUMU||"").includes("Aktarıldı")).length;
         }
       }
 
       return { rows: rows.slice(0, 500), kpi: recKpi, charts: summary.charts, isPartial: false };
     } catch (e) {
-      console.warn("Local fetch failed, falling back to API", e);
+      console.error("Local JSON okuma hatası:", e);
+      alert(e.message || "Bilinmeyen bir hata oluştu.");
+      return null; // Fallback yapma!
     }
   }
 

@@ -72,7 +72,7 @@ export function SiparisTab({ apiUrl, color, filename, title }) {
 
   if (rows.length > 0) {
     const trendMap={};
-    rows.forEach(r=>{const k=(r.TARIHI||"").slice(0,7);if(k)trendMap[k]=(trendMap[k]||0)+tutar(r);});
+    rows.forEach(r=>{const k=String(r.TARIHI||"").slice(0,7);if(k)trendMap[k]=(trendMap[k]||0)+tutar(r);});
     trendData=Object.entries(trendMap).sort().map(([k,v])=>({ay:k,tutar:Math.round(v)}));
     bolgeChart=topN(groupSum(rows,r=>r.GRUBU,tutar));
   }
@@ -196,7 +196,7 @@ export function TeklifBaseTab({ apiUrl, color, filename }) {
     markaChart=topN(groupSum(rows,r=>r.MARKASI,r=>+(r.DVZ_IND_TUTAR||0)));
     statusData=[
       {name:"Açık",val:rows.filter(r=>r.TEKLIF_DURUMU==="Teklifte"||r.TEKLIF_DURUMU==="Açık").length},
-      {name:"Kapalı",val:rows.filter(r=>r.TEKLIF_DURUMU==="Onaylandı"||r.TEKLIF_DURUMU.includes("Aktarıldı")).length},
+      {name:"Kapalı",val:rows.filter(r=>r.TEKLIF_DURUMU==="Onaylandı"||String(r.TEKLIF_DURUMU||"").includes("Aktarıldı")).length},
       {name:"İptal",val:rows.filter(r=>r.TEKLIF_DURUMU==="İptal").length}
     ];
   }

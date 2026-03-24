@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
-import Login        from "./Login.jsx";
-import OverviewTab from "./tabs/OverviewTab.jsx";
-import SatisTab     from "./tabs/SatisTab.jsx";
-import SatinAlmaTab from "./tabs/SatinAlmaTab.jsx";
-import TeklifTab    from "./tabs/TeklifTab.jsx";
-import StokTab      from "./tabs/StokTab.jsx";
-import FaturaTab    from "./tabs/FaturaTab.jsx";
-import SiparisTab   from "./tabs/SiparisTab.jsx";
-import CrmTab       from "./tabs/CrmTab.jsx";
+import Login             from "./Login.jsx";
+import OverviewTab       from "./tabs/OverviewTab.jsx";
+import SatisTab          from "./tabs/SatisTab.jsx";
+import SatinAlmaTab      from "./tabs/SatinAlmaTab.jsx";
+import TeklifTab         from "./tabs/TeklifTab.jsx";
+import StokTab           from "./tabs/StokTab.jsx";
+import FaturaTab         from "./tabs/FaturaTab.jsx";
+import SiparisTab        from "./tabs/SiparisTab.jsx";
+import CrmTab            from "./tabs/CrmTab.jsx";
+import ExcelUploadPanel  from "./components/ExcelUploadPanel.jsx";
 
 const TABS=[
   {id:"genel",     label:"Genel Bakış",       icon:"🏠", color:"#0f172a", component:OverviewTab},
@@ -19,6 +20,8 @@ const TABS=[
   {id:"siparis",   label:"Sipariş Raporu",     icon:"📈", color:"#6366f1", component:SiparisTab},
   {id:"crm",       label:"CRM",               icon:"👥", color:"#ec4899", component:CrmTab},
 ];
+
+const ADMIN_TAB={id:"upload", label:"Veri Güncelle", icon:"⬆️", color:"#059669", component:ExcelUploadPanel};
 
 export default function Dashboard() {
   const [user,setUser]=useState(null);
@@ -63,7 +66,7 @@ export default function Dashboard() {
         </div>
       </header>
       <nav style={{background:"#fff",borderBottom:"1px solid #e2e8f0",padding:"0 2rem",display:"flex",gap:2,overflowX:"auto",position:"sticky",top:54,zIndex:99}}>
-        {TABS.map(t=>{
+        {[...TABS,...(user==="admin"?[ADMIN_TAB]:[])].map(t=>{
           const on=active===t.id;
           return(
             <button key={t.id} onClick={()=>setActive(t.id)} style={{
@@ -79,7 +82,7 @@ export default function Dashboard() {
         })}
       </nav>
       <main style={{padding:"1.5rem 2rem",maxWidth:1700,margin:"0 auto"}}>
-        {AT && <AT.component/>}
+        {active==="upload" ? <ExcelUploadPanel/> : AT && <AT.component/>}
       </main>
     </div>
   );
