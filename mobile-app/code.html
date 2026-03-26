@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+
+<html lang="tr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-secondary-container": "#fffbff",
+              "on-error": "#ffffff",
+              "on-surface-variant": "#3f4850",
+              "surface-container-high": "#e5e8ed",
+              "inverse-on-surface": "#eef1f6",
+              "surface-tint": "#006494",
+              "primary-container": "#007bb5",
+              "on-secondary-fixed-variant": "#93000d",
+              "on-primary": "#ffffff",
+              "on-primary-fixed-variant": "#004b70",
+              "surface-container-highest": "#dfe3e8",
+              "secondary-fixed": "#ffdad6",
+              "outline": "#6f7881",
+              "tertiary": "#7b5500",
+              "surface-container-low": "#f1f4f9",
+              "error-container": "#ffdad6",
+              "on-tertiary": "#ffffff",
+              "on-background": "#181c20",
+              "tertiary-fixed-dim": "#ffba38",
+              "surface-container-lowest": "#ffffff",
+              "on-error-container": "#93000a",
+              "tertiary-fixed": "#ffdeac",
+              "on-tertiary-fixed": "#281900",
+              "on-primary-fixed": "#001e30",
+              "inverse-primary": "#8ecdff",
+              "background": "#f7f9fe",
+              "on-surface": "#181c20",
+              "on-secondary": "#ffffff",
+              "surface-dim": "#d7dadf",
+              "secondary-container": "#db322f",
+              "tertiary-container": "#9b6b00",
+              "surface-bright": "#f7f9fe",
+              "secondary-fixed-dim": "#ffb4ac",
+              "outline-variant": "#bfc7d1",
+              "primary-fixed": "#cae6ff",
+              "on-secondary-fixed": "#410002",
+              "on-primary-container": "#fcfcff",
+              "inverse-surface": "#2d3135",
+              "surface-variant": "#dfe3e8",
+              "surface": "#f7f9fe",
+              "primary": "#006290",
+              "on-tertiary-container": "#fffbff",
+              "secondary": "#b7131a",
+              "surface-container": "#ebeef3",
+              "primary-fixed-dim": "#8ecdff",
+              "on-tertiary-fixed-variant": "#604100",
+              "error": "#ba1a1a"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Manrope"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Manrope', sans-serif; }
+        .label-font { font-family: 'Inter', sans-serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen pb-24">
+<!-- Top Navigation Anchor -->
+<header class="bg-[#f7f9fe] dark:bg-slate-950 w-full top-0 sticky z-50 flex justify-between items-center px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#006290] dark:text-sky-400 cursor-pointer active:scale-95 duration-200">menu</span>
+<h1 class="text-[#006290] dark:text-sky-400 font-extrabold tracking-tighter text-xl">ISAC Sense</h1>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-slate-500 hover:opacity-80 transition-opacity cursor-pointer">search</span>
+<div class="relative">
+<span class="material-symbols-outlined text-[#006290] dark:text-sky-400 active:scale-95 duration-200 cursor-pointer">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-secondary rounded-full"></span>
+</div>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-6 py-8">
+<!-- Quick Actions Editorial Section -->
+<section class="mb-10">
+<div class="flex flex-wrap gap-4 items-center">
+<button class="bg-primary text-on-primary px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:opacity-90 transition-all active:scale-95">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'wght' 700;">add</span>
+                    Aktivite Ekle
+                </button>
+<div class="flex gap-2">
+<button class="bg-surface-container-lowest text-primary p-3 rounded-xl shadow-[0px_10px_40px_rgba(24,28,32,0.06)] hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined">call</span>
+</button>
+<button class="bg-surface-container-lowest text-primary p-3 rounded-xl shadow-[0px_10px_40px_rgba(24,28,32,0.06)] hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined">mail</span>
+</button>
+</div>
+<div class="ml-auto">
+<span class="text-outline font-label text-sm uppercase tracking-widest">Pazartesi, 24 Haziran 2024</span>
+</div>
+</div>
+</section>
+<!-- Bento Grid for Activity & Insights -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-8">
+<!-- Today's Activities Hero (8 Cols) -->
+<div class="md:col-span-8 space-y-6">
+<h2 class="text-2xl font-extrabold tracking-tight text-on-background">Bugün Yapılacaklar</h2>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<!-- AktiviteCard 1 -->
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-[0px_10px_40px_rgba(24,28,32,0.06)] group hover:scale-[1.01] transition-transform">
+<div class="flex justify-between items-start mb-4">
+<div class="bg-primary-fixed/30 p-2 rounded-lg">
+<span class="material-symbols-outlined text-primary">groups</span>
+</div>
+<span class="label-font text-[11px] font-bold text-primary uppercase bg-primary-fixed/20 px-2 py-1 rounded">10:30</span>
+</div>
+<h3 class="font-headline font-bold text-lg mb-1">Müşteri Tanıtım Toplantısı</h3>
+<p class="text-outline label-font text-sm mb-4">Global Tech Solutions - Yeni Proje Sunumu</p>
+<div class="flex items-center gap-2 mt-4 pt-4 border-t border-outline-variant/15">
+<img class="w-6 h-6 rounded-full object-cover" data-alt="professional male corporate executive in dark suit smiling for headshot profile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBa2MUyrUGEq1rpS-xX-io6ve9FKI_14KohPQChgtECYfOjg2qJ9foSQ3L6AJgMxpWZMdr8YTRUDAUxDegCHBi9sYaECqsjgCLFk5qWXE3J62tiEmhGce8ZEqSEcOlSoRofg-dqEnT9swCpeh-Z2UuyrzuCvzL2qKpDFnwoEotb5F-oju2zb_ur6Z3V8B3Dbba2EoGKY5arMzPr-16RzgzdNFj0E5186nGgTYXbXGLMagGeeY__jo0a1mcKWffCTNyKiKAm2B5z5w"/>
+<span class="label-font text-xs font-medium text-on-surface-variant">Ahmet Yılmaz</span>
+</div>
+</div>
+<!-- AktiviteCard 2 -->
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-[0px_10px_40px_rgba(24,28,32,0.06)] group hover:scale-[1.01] transition-transform">
+<div class="flex justify-between items-start mb-4">
+<div class="bg-secondary-fixed/30 p-2 rounded-lg">
+<span class="material-symbols-outlined text-secondary">handshake</span>
+</div>
+<span class="label-font text-[11px] font-bold text-secondary uppercase bg-secondary-fixed/20 px-2 py-1 rounded">14:00</span>
+</div>
+<h3 class="font-headline font-bold text-lg mb-1">Sözleşme Revizyonu</h3>
+<p class="text-outline label-font text-sm mb-4">Artı Mimarlık - Yıllık Bakım Anlaşması</p>
+<div class="flex items-center gap-2 mt-4 pt-4 border-t border-outline-variant/15">
+<img class="w-6 h-6 rounded-full object-cover" data-alt="professional woman in business attire looking confident in modern office setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2ZKkFpEHRzw_bVtExc743aeJiKRIlFNNa1AAB2h8HXgfD1jQcCJOe3oEaRtTKAwhQLqAcBPDfYwsGY4TNBSSn3J1tfSYRzKNgQYPBdNEyEmtA2XZfqR_ux3_MMd4pmKEJGvywb9HVdxDjG0aSqEb4IvnKJxcqfIxHYFvxfRjZ_Fb1MAySGSvE-G3o9I4BoHtRdMlZd4BDrosKNJvFoGoWtTfKsoRrgtczENK4lx76H-fy8xzKKGCXjmy2j3fNsMjaCwoPfmnS6A"/>
+<span class="label-font text-xs font-medium text-on-surface-variant">Elif Demir</span>
+</div>
+</div>
+</div>
+<!-- Personnel Performance (Editorial View) -->
+<div class="mt-12">
+<div class="flex justify-between items-end mb-6">
+<h2 class="text-2xl font-extrabold tracking-tight text-on-background">Personel Performansı</h2>
+<span class="text-primary label-font text-sm font-semibold cursor-pointer">Tümünü Gör</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+<!-- PersonelKarti 1 -->
+<div class="bg-surface-container-low p-5 rounded-xl flex flex-col items-center text-center">
+<div class="relative mb-3">
+<img class="w-16 h-16 rounded-full border-4 border-surface-container-lowest object-cover" data-alt="modern male employee headshot with neutral background professional look" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDROuJrK5KAB_fT7WlBXSKcYqxDgj9wYq5CQZkRVXQLzdmS6bFWkCPNlu5CBfqTiEEwBewjWq_3XrgQ6YD3sAlzhZr_ApXTfx4-kEa1PCMciHvAgPIaBiTfIDLhXMKWIZ5j1Oj1BUDR7DiJ-2-qnyqTUbU2TXFpP2RYPmPeM0Ewmr9Xspu9v-6mJG1-VXYH65JPB0iq5LIxEkzdZ4_EAg7lyAyeABRiHa6lj6T7cqyRiYXhRVwsy4l22Mj5aveF-hH8Sw6b_hEAAQ"/>
+<div class="absolute bottom-0 right-0 bg-green-500 w-4 h-4 rounded-full border-2 border-surface-container-low"></div>
+</div>
+<h4 class="font-bold text-on-surface">Selim Ak</h4>
+<span class="label-font text-[11px] text-outline mb-4">Satış Temsilcisi</span>
+<div class="w-full bg-surface-variant/50 h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[85%]"></div>
+</div>
+<span class="label-font text-[10px] font-bold mt-2 text-primary">%85 Hedef</span>
+</div>
+<!-- PersonelKarti 2 -->
+<div class="bg-surface-container-low p-5 rounded-xl flex flex-col items-center text-center border-2 border-primary-fixed/20">
+<div class="relative mb-3">
+<img class="w-16 h-16 rounded-full border-4 border-surface-container-lowest object-cover" data-alt="young professional woman smiling friendly expression in editorial style portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAgucVaaWFj5MkTZ57Gl5ERh9fH4FHU9ffr8Kt7ZpyWLkA6Jt4WdV7G6ThnPNKhNRK6LA5qw0_5GwiBoUQs2vuk1kX4Qv5HBiS-YK76SRGy2mZyA0-SFdKwlgxjkirscDvRzHQx_pRlttkXRmkt7okUKkz6OP3YTrQzfoF0ATgnvgKkc6KFeBArfQZ0frRIDq7Ol2-DJMIrmds54RaQzw6c95P9vMPYD6l1pdmfYegRUc4IOE30Pg36HpsgkL0PbjcnNh3SQdHmTA"/>
+<div class="absolute bottom-0 right-0 bg-green-500 w-4 h-4 rounded-full border-2 border-surface-container-low"></div>
+</div>
+<h4 class="font-bold text-on-surface">Canan Mert</h4>
+<span class="label-font text-[11px] text-outline mb-4">Müşteri İlişkileri</span>
+<div class="w-full bg-surface-variant/50 h-1.5 rounded-full overflow-hidden">
+<div class="bg-secondary h-full w-[94%]"></div>
+</div>
+<span class="label-font text-[10px] font-bold mt-2 text-secondary">%94 Hedef</span>
+</div>
+<!-- PersonelKarti 3 -->
+<div class="bg-surface-container-low p-5 rounded-xl flex flex-col items-center text-center">
+<div class="relative mb-3">
+<img class="w-16 h-16 rounded-full border-4 border-surface-container-lowest object-cover" data-alt="senior business male professional portrait with experienced look" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDeOKwSuJoItbcWy9aBJJ-sCqwHH1Mog7aTnQmZqqtKk-Qm91NvHt6dTb7Hkwshi2bgMPUY2-14fLa9_COu3krwgq7NyIFdPN3__JVQiJOQVd8lId_UY96nCj6UVaphOqHHCpVugDtAmqb_DNNHtNR2aHqy82xnMNuelTPoFuMFVvMW5sEznEYr5jTbzxrM9m0XcFIXq_hB9y6PgAERVX40HAibLtx6-06xrb55qb6Bi9pL385st8fEWngoIctTjRmB_0V86KMTJg"/>
+<div class="absolute bottom-0 right-0 bg-orange-400 w-4 h-4 rounded-full border-2 border-surface-container-low"></div>
+</div>
+<h4 class="font-bold text-on-surface">Murat Soydan</h4>
+<span class="label-font text-[11px] text-outline mb-4">Kıdemli Uzman</span>
+<div class="w-full bg-surface-variant/50 h-1.5 rounded-full overflow-hidden">
+<div class="bg-tertiary h-full w-[62%]"></div>
+</div>
+<span class="label-font text-[10px] font-bold mt-2 text-tertiary">%62 Hedef</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Side Rail (4 Cols) - Calendar & Quick Insights -->
+<aside class="md:col-span-4 space-y-8">
+<!-- Mini Calendar View -->
+<div class="bg-surface-container-low rounded-2xl p-6">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-bold text-on-background">Haziran 2024</h3>
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-outline cursor-pointer text-sm">chevron_left</span>
+<span class="material-symbols-outlined text-outline cursor-pointer text-sm">chevron_right</span>
+</div>
+</div>
+<div class="grid grid-cols-7 gap-2 text-center label-font text-[10px] text-outline font-bold mb-4 uppercase tracking-tighter">
+<span>Pt</span><span>Sa</span><span>Ça</span><span>Pe</span><span>Cu</span><span>Ct</span><span>Pz</span>
+</div>
+<div class="grid grid-cols-7 gap-y-3 text-center label-font text-xs">
+<span class="text-surface-dim">20</span><span class="text-surface-dim">21</span><span class="text-surface-dim">22</span><span class="text-surface-dim">23</span>
+<span class="bg-primary text-on-primary w-6 h-6 flex items-center justify-center rounded-full mx-auto font-bold">24</span>
+<span>25</span><span>26</span>
+<span>27</span><span>28</span><span>29</span><span>30</span><span>1</span><span>2</span><span>3</span>
+</div>
+<div class="mt-8 space-y-4">
+<h4 class="label-font text-[11px] font-bold text-outline uppercase tracking-wider">Yaklaşan Hatırlatıcılar</h4>
+<div class="flex gap-3 items-start">
+<div class="w-1 h-8 bg-tertiary rounded-full"></div>
+<div>
+<p class="text-sm font-bold">Teklif Onayı Bekleniyor</p>
+<p class="label-font text-[11px] text-outline">16:30 - Digital Ocean</p>
+</div>
+</div>
+<div class="flex gap-3 items-start opacity-60">
+<div class="w-1 h-8 bg-outline rounded-full"></div>
+<div>
+<p class="text-sm font-bold">Haftalık Rapor</p>
+<p class="label-font text-[11px] text-outline">Yarın - 09:00</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Visual Insight Card (Glassmorphism) -->
+<div class="relative overflow-hidden rounded-2xl p-6 h-48 flex flex-col justify-end bg-primary-container text-on-primary-container">
+<div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+<div class="relative z-10">
+<span class="label-font text-[10px] font-bold uppercase tracking-widest opacity-80">Aylık Kazanım</span>
+<h3 class="text-3xl font-headline font-extrabold mt-1">₺842.000</h3>
+<p class="label-font text-xs mt-2 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">trending_up</span>
+                            Geçen aya göre %12 artış
+                        </p>
+</div>
+<div class="absolute top-4 right-6 opacity-20">
+<span class="material-symbols-outlined text-6xl">payments</span>
+</div>
+</div>
+</aside>
+</div>
+</main>
+<!-- Bottom Navigation Shell (Mobile Responsive Anchor) -->
+<nav class="fixed bottom-0 w-full pb-safe z-50 rounded-t-[24px] bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-[0px_-10px_40px_rgba(24,28,32,0.06)] md:hidden">
+<div class="flex justify-around items-center w-full h-20 px-4">
+<div class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-[#007bb5] transition-colors active:scale-90 duration-150">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-['Inter'] text-[11px] font-medium tracking-wide">Genel Bakış</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-[#007bb5] transition-colors active:scale-90 duration-150">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-['Inter'] text-[11px] font-medium tracking-wide">Satış</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-[#007bb5] transition-colors active:scale-90 duration-150">
+<span class="material-symbols-outlined">shopping_cart</span>
+<span class="font-['Inter'] text-[11px] font-medium tracking-wide">Satınalma</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-[#007bb5] transition-colors active:scale-90 duration-150">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-['Inter'] text-[11px] font-medium tracking-wide">Stok</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#006290] dark:text-sky-400 font-semibold active:scale-90 duration-150">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">groups</span>
+<span class="font-['Inter'] text-[11px] font-medium tracking-wide">CRM</span>
+</div>
+</div>
+</nav>
+<!-- Floating Action Button (Contextual Support) -->
+<button class="fixed right-6 bottom-24 md:bottom-8 bg-secondary text-on-secondary w-14 h-14 rounded-full shadow-lg flex items-center justify-center active:scale-90 transition-transform z-40">
+<span class="material-symbols-outlined">add</span>
+</button>
+</body></html>
