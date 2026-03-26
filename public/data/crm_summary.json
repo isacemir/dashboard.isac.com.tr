@@ -1,12 +1,41 @@
 {
   "kpi": {
-    "sayi": 21028,
-    "yapildi": 17988,
-    "yapilacak": 2464,
-    "firsat": 231
+    "sayi": 1898,
+    "yapildi": 1819,
+    "yapilacak": 45,
+    "firsat": 1
   },
   "charts": {
-    "aktivite": []
+    "aktivite": [
+      {
+        "name": "Ziyaret",
+        "val": 1633
+      },
+      {
+        "name": "Randevu",
+        "val": 181
+      },
+      {
+        "name": "Yapılacak İş",
+        "val": 67
+      },
+      {
+        "name": "Telefon - CRM",
+        "val": 7
+      },
+      {
+        "name": "Toplantı",
+        "val": 7
+      },
+      {
+        "name": "Fuar",
+        "val": 2
+      },
+      {
+        "name": "Tahsilat",
+        "val": 1
+      }
+    ]
   },
-  "lastSync": "2026-03-24T14:07:32.823Z"
+  "lastSync": "2026-03-26T13:55:43.511Z"
 }

@@ -1,17 +1,12 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import React, { useState } from 'react';
-import {
-  Dimensions,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import React, { useMemo, useState } from 'react';
+import { Alert, Dimensions, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import DataService from '../services/DataService';
 
 import { Header } from '../components/Header';
+import { NavigationDrawer } from '../components/NavigationDrawer';
 
 const { width } = Dimensions.get('window');
 
@@ -275,6 +270,11 @@ const styles = StyleSheet.create({
     color: '#006290',
     fontFamily: 'Inter',
   },
+  regionRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
   progressBar: {
     height: 6,
     backgroundColor: '#f1f5f9',
@@ -317,32 +317,13 @@ const styles = StyleSheet.create({
 });
 
 export const DashboardScreen: React.FC = () => {
+  const navigation = useNavigation();
   const [refreshing, setRefreshing] = useState(false);
-  const [dashboardData, setDashboardData] = useState({
-    totalSales: '€1.725.811',
-    salesTrend: '+12.4%',
-    pendingOrders: '€6.847.459',
-    openOffers: '€6.435.028',
-    criticalStock: 105,
-    crmActivities: 21028,
-  });
+  const [isDrawerVisible, setIsDrawerVisible] = useState(false);
 
-  const salesTrendData = [
-    { month: 'OCAK', value: 1200000 },
-    { month: 'ŞUBAT', value: 1450000 },
-    { month: 'MART', value: 1350000 },
-    { month: 'NİSAN', value: 1680000 },
-    { month: 'MAYIS', value: 1520000 },
-    { month: 'HAZİRAN', value: 1725811 },
-  ];
-
-  const regionalData = [
-    { region: 'Bursa Bölge', value: '€500.5K', percentage: 85 },
-    { region: 'Avrupa Bölge', value: '€403.9K', percentage: 65 },
-    { region: 'Anadolu Bölge', value: '€298.6K', percentage: 45 },
-    { region: 'Ege Bölge', value: '€204.4K', percentage: 30 },
-    { region: 'Diğer Bölge', value: '€167.3K', percentage: 20 },
-  ];
+  const kpis = useMemo(() => DataService.getDashboardKPIs(), []);
+  const salesTrendData = useMemo(() => DataService.getMonthlySalesTrend(), []);
+  const regionalData = useMemo(() => DataService.getRegionalSales(), []);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -352,19 +333,101 @@ export const DashboardScreen: React.FC = () => {
   };
 
   const handleDownloadReport = () => {
-    console.log('Rapor indiriliyor...');
+    Alert.alert(
+      'Raporu İndir',
+      'Hangi formatta indirmek istersiniz?',
+      [
+        {
+          text: 'Excel (.xlsx)',
+          onPress: async () => {
+            try {
+              // Mevcut satis-raporu.xlsx dosyasını asset'ten kopyala ve paylaş
+              const sourceUri = FileSystem.documentDirectory + 'satis-raporu.xlsx';
+              // Asset'ten kopyala
+              await FileSystem.downloadAsync(
+                'https://dashboard.isac.com.tr/api/satis-raporu.xlsx',
+                sourceUri
+              ).catch(async () => {
+                // API yoksa local JSON'dan CSV oluştur
+                const data = DataService.getSalesReports().slice(0, 100);
+                const headers = Object.keys(data[0] || {}).join(',');
+                const rows = data.map(r => Object.values(r).map(v => `"${String(v).replace(/"/g, '""')}"`).join(','));
+                const csv = [headers, ...rows].join('\n');
+                const csvUri = FileSystem.documentDirectory + 'satis-raporu.csv';
+                await FileSystem.writeAsStringAsync(csvUri, csv, { encoding: FileSystem.EncodingType.UTF8 });
+                const canShare = await Sharing.isAvailableAsync();
+                if (canShare) {
+                  await Sharing.shareAsync(csvUri, { mimeType: 'text/csv', dialogTitle: 'Satış Raporu', UTI: 'public.comma-separated-values-text' });
+                } else {
+                  Alert.alert('Başarılı', 'Rapor kaydedildi: ' + csvUri);
+                }
+              });
+              const canShare = await Sharing.isAvailableAsync();
+              if (canShare) {
+                await Sharing.shareAsync(sourceUri, { mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', dialogTitle: 'Satış Raporu' });
+              }
+            } catch (e) {
+              Alert.alert('Hata', 'Dosya oluşturulurken bir hata oluştu.');
+            }
+          },
+        },
+        {
+          text: 'PDF (CSV)',
+          onPress: async () => {
+            try {
+              const data = DataService.getSalesReports();
+              const kpis = DataService.getDashboardKPIs();
+              const regional = DataService.getRegionalSales();
+
+              const lines = [
+                'ISAC SENSE DIGITAL - DASHBOARD RAPORU',
+                '======================================',
+                `Tarih: ${new Date().toLocaleDateString('tr-TR')}`,
+                '',
+                'KPI ÖZET',
+                `Toplam Satış: ${kpis.totalSales}`,
+                `Bekleyen Siparişler: ${kpis.pendingOrders}`,
+                `Açık Teklifler: ${kpis.openOffers}`,
+                `Kritik Stok: ${kpis.criticalStock}`,
+                `CRM Aktivite: ${kpis.crmActivities}`,
+                '',
+                'BÖLGESEL DAĞILIM',
+                ...regional.map(r => `${r.region}: ${r.value} (%${r.percentage})`),
+                '',
+                `Toplam ${data.length} satış kaydı bulunmaktadır.`,
+              ];
+
+              const content = lines.join('\n');
+              const fileUri = FileSystem.documentDirectory + 'dashboard-raporu.txt';
+              await FileSystem.writeAsStringAsync(fileUri, content, { encoding: FileSystem.EncodingType.UTF8 });
+
+              const canShare = await Sharing.isAvailableAsync();
+              if (canShare) {
+                await Sharing.shareAsync(fileUri, { mimeType: 'text/plain', dialogTitle: 'Dashboard Raporu' });
+              } else {
+                Alert.alert('Başarılı', 'Rapor kaydedildi.');
+              }
+            } catch (e) {
+              Alert.alert('Hata', 'Rapor oluşturulurken bir hata oluştu.');
+            }
+          },
+        },
+        { text: 'İptal', style: 'cancel' },
+      ],
+      { cancelable: true }
+    );
   };
 
   const handleMenuPress = () => {
-    console.log('Menu açılıyor...');
+    setIsDrawerVisible(true);
   };
 
   const handleNotificationPress = () => {
-    console.log('Bildirimler açılıyor...');
+    navigation.navigate('Notifications' as never);
   };
 
   const handleProfilePress = () => {
-    console.log('Profil açılıyor...');
+    navigation.navigate('Profile' as never);
   };
 
   return (
@@ -407,7 +470,7 @@ export const DashboardScreen: React.FC = () => {
             </View>
             <View>
               <Text style={styles.kpiLabel}>Toplam Satış (Ciro)</Text>
-              <Text style={styles.kpiValue}>€1.725.811</Text>
+              <Text style={styles.kpiValue}>{kpis.totalSales}</Text>
             </View>
           </View>
 
@@ -420,7 +483,7 @@ export const DashboardScreen: React.FC = () => {
             </View>
             <View>
               <Text style={styles.kpiLabel}>Bekleyen Siparişler</Text>
-              <Text style={styles.kpiValue}>€6.847.459</Text>
+              <Text style={styles.kpiValue}>{kpis.pendingOrders}</Text>
             </View>
           </View>
         </View>
@@ -433,7 +496,7 @@ export const DashboardScreen: React.FC = () => {
         >
           <View style={styles.kpiCardSmall}>
             <Text style={styles.kpiLabel}>Açık Teklifler</Text>
-            <Text style={styles.kpiValue}>€6.435.028</Text>
+            <Text style={styles.kpiValue}>{kpis.openOffers}</Text>
             <View style={styles.kpiSubtitle}>
               <MaterialIcons name="description" size={16} color="#006290" />
               <Text style={styles.kpiSubtitleText}>Aktif Süreçler</Text>
@@ -441,7 +504,7 @@ export const DashboardScreen: React.FC = () => {
           </View>
           <View style={styles.kpiCardSmall}>
             <Text style={styles.kpiLabel}>Kritik Stok</Text>
-            <Text style={styles.kpiValue}>105</Text>
+            <Text style={styles.kpiValue}>{kpis.criticalStock}</Text>
             <View style={styles.kpiSubtitle}>
               <MaterialIcons name="inventory-2" size={16} color="#b7131a" />
               <Text style={styles.kpiSubtitleText}>Acil İkmal</Text>
@@ -449,7 +512,7 @@ export const DashboardScreen: React.FC = () => {
           </View>
           <View style={styles.kpiCardSmall}>
             <Text style={styles.kpiLabel}>CRM Aktivite</Text>
-            <Text style={styles.kpiValue}>21.028</Text>
+            <Text style={styles.kpiValue}>{kpis.crmActivities.toLocaleString('tr-TR')}</Text>
             <View style={styles.kpiSubtitle}>
               <MaterialIcons name="groups" size={16} color="#7b5500" />
               <Text style={styles.kpiSubtitleText}>Kayıtlı Etkileşim</Text>
@@ -468,39 +531,39 @@ export const DashboardScreen: React.FC = () => {
           
           <View style={styles.chart}>
             {salesTrendData.map((item, index) => {
-              const height = (item.value / Math.max(...salesTrendData.map(d => d.value))) * 100;
-              const isHighest = item.value === Math.max(...salesTrendData.map(d => d.value));
-              const opacity = 0.1 + (index * 0.1);
-              
+              const maxVal = Math.max(...salesTrendData.map(d => d.value));
+              const height = (item.value / maxVal) * 100;
+              const isHighest = item.value === maxVal;
+              const opacity = 0.3 + (index / salesTrendData.length) * 0.7;
+
               return (
                 <View key={index} style={styles.barContainer}>
+                  <View style={styles.valueLabel}>
+                    <Text style={[styles.valueText, isHighest && { color: '#006290', fontWeight: '800' }]}>
+                      €{item.value.toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                    </Text>
+                  </View>
                   <View
                     style={[
                       styles.bar,
                       {
                         height: `${height}%`,
                         width: 30,
-                        backgroundColor: `rgba(0, 98, 144, ${Math.min(opacity + 0.2, 1)})`,
+                        backgroundColor: isHighest ? '#006290' : `rgba(0, 98, 144, ${opacity})`,
                       },
                     ]}
                   />
-                  {isHighest && (
-                    <View style={styles.valueLabel}>
-                      <Text style={styles.valueText}>
-                        €{(item.value / 1000000).toFixed(1)}M
-                      </Text>
-                    </View>
-                  )}
                 </View>
               );
             })}
           </View>
           
           <View style={styles.chartLabels}>
-            <Text style={styles.chartLabel}>OCAK</Text>
-            <Text style={styles.chartLabel}>MART</Text>
-            <Text style={[styles.chartLabel, styles.chartLabelActive]}>HAZİRAN</Text>
-            <Text style={styles.chartLabel}>EYLÜL</Text>
+            {salesTrendData.map((item, index) => (
+              <Text key={index} style={index === salesTrendData.length - 1 ? [styles.chartLabel, styles.chartLabelActive] : styles.chartLabel}>
+                {item.month}
+              </Text>
+            ))}
           </View>
         </View>
 
@@ -516,10 +579,13 @@ export const DashboardScreen: React.FC = () => {
           
           <View style={styles.regionsContainer}>
             {regionalData.map((item, index) => (
-              <View key={index} style={styles.regionItem}>
+              <TouchableOpacity key={index} style={styles.regionItem} onPress={() => (navigation as any).navigate('Tabs', { screen: 'Sales', params: { region: item.region } })} activeOpacity={0.7}>
                 <View style={styles.regionHeader}>
                   <Text style={styles.regionName}>{item.region}</Text>
-                  <Text style={styles.regionValue}>{item.value}</Text>
+                  <View style={styles.regionRight}>
+                    <Text style={styles.regionValue}>{item.value}</Text>
+                    <MaterialIcons name="chevron-right" size={16} color="#006290" />
+                  </View>
                 </View>
                 <View style={styles.progressBar}>
                   <View 
@@ -532,7 +598,7 @@ export const DashboardScreen: React.FC = () => {
                     ]} 
                   />
                 </View>
-              </View>
+              </TouchableOpacity>
             ))}
           </View>
         </View>
@@ -548,6 +614,16 @@ export const DashboardScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
       </ScrollView>
+      <NavigationDrawer 
+        isVisible={isDrawerVisible}
+        onClose={() => setIsDrawerVisible(false)}
+        onNavigate={(screen) => {
+          setIsDrawerVisible(false);
+          const TAB = ['Dashboard','Sales','Purchasing','Stock','CRM'];
+          if (TAB.includes(screen)) { (navigation as any).navigate('Tabs', { screen }); }
+          else { (navigation as any).navigate(screen); }
+        }}
+      />
     </SafeAreaView>
   );
 };

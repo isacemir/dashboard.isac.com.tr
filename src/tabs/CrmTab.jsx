@@ -236,14 +236,21 @@ export default function CrmTab() {
                 filename={`cari_aktiviteler_${cariDetaylari.kod}`}
                 data={cariAktiviteler} 
                 columns={[
-                  {key:"AKTIVITE_KODU", label:"Aktivite No", render:v=><span style={{color:COLOR,fontFamily:"monospace",fontWeight:600,fontSize:11}}>{v}</span>},
-                  {key:"BASLAMA", label:"Tarih", render:v=>v ? (typeof v === 'string' ? v.slice(0,16) : new Date(v).toLocaleString('tr-TR', {year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'})) : "-"},
-                  {key:"AKTIVITE_SAHIBI", label:"Personel", render:v=><span style={{display:"inline-flex",alignItems:"center",gap:5}}><span style={{width:22,height:22,borderRadius:"50%",background:`${COLOR}20`,display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:700,color:COLOR}}>{String(v||"?").slice(0,2).toUpperCase()}</span>{v}</span>},
-                  {key:"TIPI", label:"Tip"},
-                  {key:"DURUMU", label:"Durum", render:v=><Badge value={v} map={DURUM_MAP}/>},
-                  {key:"KONU", label:"Konu"},
-                  {key:"GORUSME_SURESI", label:"Süre"},
-                  {key:"FIRSATADI", label:"Fırsat", render:v=>v?<span style={{color:"#8b5cf6",fontSize:11,fontWeight:600}}>🎯{v}</span>:"-"},
+                  {key:"AKTIVITE_KODU",       label:"Aktivite No",    render:v=><span style={{color:COLOR,fontFamily:"monospace",fontWeight:600,fontSize:11}}>{v}</span>},
+                  {key:"BASLAMA",             label:"Tarih",          render:v=>v ? (typeof v === 'string' ? v.slice(0,16) : new Date(v).toLocaleString('tr-TR', {year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'})) : "-"},
+                  {key:"AKTIVITE_SAHIBI",     label:"Personel",       render:v=><span style={{display:"inline-flex",alignItems:"center",gap:5}}><span style={{width:22,height:22,borderRadius:"50%",background:`${COLOR}20`,display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:700,color:COLOR}}>{String(v||"?").slice(0,2).toUpperCase()}</span>{v}</span>},
+                  {key:"CARI_YETKILI",        label:"Yetkili"},
+                  {key:"CARI_YETKILI_GOREVI", label:"Görevi"},
+                  {key:"ADI_SOYADI",          label:"Adı Soyadı"},
+                  {key:"TEL1",                label:"Tel 1"},
+                  {key:"CEP_TEL",             label:"Cep Tel"},
+                  {key:"E_MAIL",              label:"E-Mail"},
+                  {key:"TIPI",                label:"Tip"},
+                  {key:"DURUMU",              label:"Durum",          render:v=><Badge value={v} map={DURUM_MAP}/>},
+                  {key:"KONU",                label:"Konu"},
+                  {key:"GORUSME_SURESI",      label:"Süre"},
+                  {key:"FIRSATKODU",          label:"Fırsat Kodu",    render:v=>v?<span style={{color:"#8b5cf6",fontSize:11,fontWeight:600,fontFamily:"monospace"}}>{v}</span>:"-"},
+                  {key:"FIRSATADI",           label:"Fırsat Adı",     render:v=>v?<span style={{color:"#8b5cf6",fontSize:11,fontWeight:600}}>🎯{v}</span>:"-"},
                 ]}
               />
             </div>
@@ -362,39 +369,40 @@ export default function CrmTab() {
       </div>
 
       <DataTable color={COLOR} filename="crm_aktiviteler" data={visibleRows} columns={[
-        {key:"AKTIVITE_KODU",  label:"Aktivite No",   render:v=><span style={{color:COLOR,fontFamily:"monospace",fontWeight:600,fontSize:11}}>{v}</span>},
-        {key:"BASLAMA",        label:"Tarih / Saat",   render:v=>v ? (typeof v === 'string' ? v.slice(0,16) : new Date(v).toLocaleString('tr-TR', {year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'})) : "-"},
-        {key:"AKTIVITE_SAHIBI",label:"Personel",       render:v=>(
+        {key:"AKTIVITE_KODU",        label:"Aktivite No",     render:v=><span style={{color:COLOR,fontFamily:"monospace",fontWeight:600,fontSize:11}}>{v}</span>},
+        {key:"BASLAMA",              label:"Tarih / Saat",    render:v=>v ? (typeof v === 'string' ? v.slice(0,16) : new Date(v).toLocaleString('tr-TR', {year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'})) : "-"},
+        {key:"AKTIVITE_SAHIBI",      label:"Personel",        render:v=>(
           <span style={{display:"inline-flex",alignItems:"center",gap:5}}>
             <span style={{width:22,height:22,borderRadius:"50%",background:`${COLOR}20`,display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:700,color:COLOR}}>
               {String(v||"?").slice(0,2).toUpperCase()}
             </span>
-            <span 
-              onClick={() => {
-                // Kullanıcı detay sayfasına yönlendir
-                window.location.href = `/kullanici-detay?adi=${encodeURIComponent(v || '')}`;
-              }}
+            <span
+              onClick={() => { window.location.href = `/kullanici-detay?adi=${encodeURIComponent(v || '')}`; }}
               style={{color:COLOR,cursor:"pointer",textDecoration:"underline",fontWeight:600}}
               title={`${v} kullanıcısının detaylarını görüntüle`}
-            >
-              {v}
-            </span>
+            >{v}</span>
           </span>
         )},
-        {key:"TICARI_UNVANI",  label:"Firma", render:v=><span 
-            onClick={() => setSelectedCari(v)} 
-            style={{color:COLOR,cursor:"pointer",textDecoration:"underline",fontWeight:600}}
-            title="Cari detaylarını görüntüle"
-          >{v}</span>},
-        {key:"ILI_1",          label:"İl"},
-        {key:"GRUBU",          label:"Bölge"},
-        {key:"KONU",           label:"Konu"},
-        {key:"TIPI",           label:"Tip"},
-        {key:"DURUMU",         label:"Durum",           render:v=><Badge value={v} map={DURUM_MAP}/>},
-        {key:"GORUSME_SURESI", label:"Süre"},
-        {key:"BITIS",          label:"Bitiş",           render:v=>v ? (typeof v === 'string' ? v.slice(0,16) : new Date(v).toLocaleString('tr-TR', {year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'})) : "-"},
-        {key:"FIRSATADI",      label:"Fırsat",          render:v=>v?<span style={{color:"#8b5cf6",fontSize:11,fontWeight:600}}>🎯{v}</span>:"-"},
-        {key:"ACIKLAMA_NOTLAR",label:"Notlar",          render:v=>v?<span style={{fontSize:11,color:"#64748b",maxWidth:200,display:"block",overflow:"hidden",textOverflow:"ellipsis"}}>{v}</span>:"-"},
+        {key:"TICARI_UNVANI",        label:"Firma",           render:v=><span onClick={()=>setSelectedCari(v)} style={{color:COLOR,cursor:"pointer",textDecoration:"underline",fontWeight:600}} title="Cari detaylarını görüntüle">{v}</span>},
+        {key:"CARI_YETKILI",         label:"Yetkili"},
+        {key:"CARI_YETKILI_GOREVI",  label:"Görevi"},
+        {key:"ADI_SOYADI",           label:"Adı Soyadı"},
+        {key:"TEL1",                 label:"Tel 1"},
+        {key:"TEL2",                 label:"Tel 2"},
+        {key:"CEP_TEL",              label:"Cep Tel"},
+        {key:"E_MAIL",               label:"E-Mail"},
+        {key:"ADRESI_1",             label:"Adres"},
+        {key:"ILI_1",                label:"İl"},
+        {key:"ILCESI_1",             label:"İlçe"},
+        {key:"GRUBU",                label:"Bölge"},
+        {key:"KONU",                 label:"Konu"},
+        {key:"TIPI",                 label:"Tip"},
+        {key:"DURUMU",               label:"Durum",           render:v=><Badge value={v} map={DURUM_MAP}/>},
+        {key:"GORUSME_SURESI",       label:"Süre"},
+        {key:"BITIS",                label:"Bitiş",           render:v=>v ? (typeof v === 'string' ? v.slice(0,16) : new Date(v).toLocaleString('tr-TR', {year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'})) : "-"},
+        {key:"FIRSATKODU",           label:"Fırsat Kodu",     render:v=>v?<span style={{color:"#8b5cf6",fontSize:11,fontWeight:600,fontFamily:"monospace"}}>{v}</span>:"-"},
+        {key:"FIRSATADI",            label:"Fırsat Adı",      render:v=>v?<span style={{color:"#8b5cf6",fontSize:11,fontWeight:600}}>🎯{v}</span>:"-"},
+        {key:"ACIKLAMA_NOTLAR",      label:"Notlar",          render:v=>v?<span style={{fontSize:11,color:"#64748b",maxWidth:200,display:"block",overflow:"hidden",textOverflow:"ellipsis"}}>{v}</span>:"-"},
       ]}/>
       </div>
     </div>

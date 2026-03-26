@@ -97,10 +97,24 @@ try {
         ];
         $charts['marka'] = array_slice(groupSum($rows, fn($r) => $r['MARKASI'] ?? null, fn($r) => floatval($r['DVZ_IND_TUTAR'] ?? 0)), 0, 7);
     } elseif ($target === 'crm') {
-        $kpi['yapildi']   = count(array_filter($rows, fn($r) => ($r['DURUMU'] ?? '') === 'Yapıldı'));
+        // Excel serial number → "YYYY-MM-DD HH:MM" string
+        $excelDateToStr = function($serial) {
+            if (!$serial || !is_numeric($serial)) return $serial;
+            $ms = ($serial - 25569) * 86400;
+            $d = new DateTime('@' . (int)$ms, new DateTimeZone('UTC'));
+            return $d->format('Y-m-d H:i');
+        };
+        foreach ($rows as &$r) {
+            if (!empty($r['BASLAMA']))              $r['BASLAMA']              = $excelDateToStr($r['BASLAMA']);
+            if (!empty($r['BITIS']))                $r['BITIS']                = $excelDateToStr($r['BITIS']);
+            if (!empty($r['EV_KAYIT_TARIHI']))      $r['EV_KAYIT_TARIHI']      = $excelDateToStr($r['EV_KAYIT_TARIHI']);
+            if (!empty($r['EV_DEGISTIRME_TARIHI'])) $r['EV_DEGISTIRME_TARIHI'] = $excelDateToStr($r['EV_DEGISTIRME_TARIHI']);
+        }
+        unset($r);
+        $kpi['yapildi']   = count(array_filter($rows, fn($r) => ($r['DURUMU'] ?? '') === 'Yapıldı' || ($r['DURUMU'] ?? '') === 'Tamamlandı'));
         $kpi['yapilacak'] = count(array_filter($rows, fn($r) => ($r['DURUMU'] ?? '') === 'Yapılacak'));
         $kpi['firsat']    = count(array_filter($rows, fn($r) => !empty($r['FIRSATADI'])));
-        $charts['aktivite'] = array_slice(groupSum($rows, fn($r) => $r['AKTIVITE_TIPI'] ?? null, fn($r) => 1), 0, 7);
+        $charts['aktivite'] = array_slice(groupSum($rows, fn($r) => $r['TIPI'] ?? null, fn($r) => 1), 0, 7);
     } elseif ($target === 'stok') {
         $kpi['stokta']            = count(array_filter($rows, fn($r) => floatval($r['STOK_MIKTARI'] ?? 0) > 0));
         $kpi['kritik']            = count(array_filter($rows, fn($r) => in_array($r['DURUM'] ?? '', ['KRİTİK STOK', 'SIFIR BAKİYE - SATIN ALMA YOK'])));

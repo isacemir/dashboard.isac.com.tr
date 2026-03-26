@@ -19,6 +19,16 @@ const files = [
   { name: 'crm.xlsx', target: 'crm' }
 ];
 
+// Excel serial number → "YYYY-MM-DD HH:MM" string
+function excelDateToStr(serial) {
+  if (!serial || typeof serial !== 'number') return serial;
+  // Excel epoch: Dec 30, 1899
+  const ms = (serial - 25569) * 86400 * 1000;
+  const d = new Date(ms);
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
+}
+
 // Helper for group and sum (similar to the one in components.jsx)
 function groupSum(rows, keyFn, valFn) {
   const m = {};
@@ -42,7 +52,7 @@ function processFile(file) {
   console.log(`Processing ${file.name}...`);
   const workbook = XLSX.readFile(filePath);
   const sheetName = workbook.SheetNames[0];
-  const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+  const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: "" });
 
   // Basic KPI calculation
   let kpi = { sayi: rows.length };
@@ -79,11 +89,24 @@ function processFile(file) {
     ];
     charts.marka = groupSum(rows, r => r.MARKASI, tutar).slice(0, 7);
   } else if (file.target === 'crm') {
+    // Sadece CARIKODU dolu olan gerçek müşteri kayıtlarını al
+    const filtered = rows.filter(r => r.CARIKODU);
+    rows.length = 0;
+    filtered.forEach(r => rows.push(r));
+
+    // Tarih sütunlarını Excel serial'dan string'e çevir
+    rows.forEach(r => {
+      if (r.BASLAMA)              r.BASLAMA              = excelDateToStr(r.BASLAMA);
+      if (r.BITIS)                r.BITIS                = excelDateToStr(r.BITIS);
+      if (r.EV_KAYIT_TARIHI)      r.EV_KAYIT_TARIHI      = excelDateToStr(r.EV_KAYIT_TARIHI);
+      if (r.EV_DEGISTIRME_TARIHI) r.EV_DEGISTIRME_TARIHI = excelDateToStr(r.EV_DEGISTIRME_TARIHI);
+    });
+    kpi.sayi = rows.length; // filtrelenmiş sayı
     kpi.yapildi = rows.filter(r => r.DURUMU === 'Yapıldı' || r.DURUMU === 'Tamamlandı').length;
     kpi.yapilacak = rows.filter(r => r.DURUMU === 'Yapılacak').length;
     kpi.firsat = rows.filter(r => !!r.FIRSATADI).length;
 
-    charts.aktivite = groupSum(rows, r => r.AKTIVITE_TIPI, r => 1).slice(0, 7);
+    charts.aktivite = groupSum(rows, r => r.TIPI, r => 1).slice(0, 7);
   } else if (file.target === 'stok') {
     kpi.stokta = rows.filter(r => (parseFloat(r.STOK_MIKTARI) || 0) > 0).length;
     kpi.kritik = rows.filter(r => ["KRİTİK STOK", "SIFIR BAKİYE - SATIN ALMA YOK"].includes(r.DURUM || "")).length;

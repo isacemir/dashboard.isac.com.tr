@@ -1,446 +1,264 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import React, { useState } from 'react';
-import {
-  Dimensions,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import React, { useMemo, useState } from 'react';
+import { Dimensions, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
 import { Header } from '../components/Header';
+import { NavigationDrawer } from '../components/NavigationDrawer';
+import DataService from '../services/DataService';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 const isSmallScreen = width < 380;
-const isTablet = width > 768;
+const TAB = ['Dashboard', 'Sales', 'Purchasing', 'Stock', 'CRM'];
 
-const purchasingData = [
-  {
-    id: '#TR-1142',
-    supplier: 'Endüstriyel Çözümler',
-    lastDate: '12 May 2024',
-    pendingApprovals: 1,
-    pendingText: '1 İşlem',
-    status: 'İnceleniyor',
-    statusColor: '#64748b',
-    statusBg: '#f1f4f9',
-    icon: 'settings',
-    iconBg: '#ffdeac30',
-    iconColor: '#ffba38',
-  },
-  {
-    id: '#TR-4402',
-    supplier: 'Özdemir Paketleme',
-    lastDate: '10 May 2024',
-    pendingApprovals: 0,
-    pendingText: 'Yok',
-    status: 'Onaylandı',
-    statusColor: '#15803d',
-    statusBg: '#dcfce7',
-    icon: 'inventory',
-    iconBg: '#8ecdff30',
-    iconColor: '#006290',
-  },
-];
+const excelDate = (val: any): string => {
+  if (!val) return '—';
+  const num = Number(val);
+  if (isNaN(num) || num === 0) return String(val);
+  return new Date(Math.round((num - 25569) * 86400 * 1000))
+    .toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+};
+
+const STATUS_STYLE: Record<string, { bg: string; text: string }> = {
+  'Siparişe Aktarıldı': { bg: '#dcfce7', text: '#15803d' },
+  'Onaylandı':          { bg: '#dcfce7', text: '#15803d' },
+  'Bekliyor':           { bg: '#fef9c3', text: '#a16207' },
+  'Reddedildi':         { bg: '#fee2e2', text: '#dc2626' },
+  'İptal':              { bg: '#fee2e2', text: '#dc2626' },
+};
+
+const TABS = ['Teklifler', 'Faturalar'];
+
+const FATURA_DURUM: Record<number, { label: string; bg: string; text: string }> = {
+  1: { label: 'Taslak',     bg: '#f1f5f9', text: '#64748b' },
+  2: { label: 'Onay Bekl.', bg: '#fef9c3', text: '#a16207' },
+  3: { label: 'Onaylandı',  bg: '#dcfce7', text: '#15803d' },
+  4: { label: 'Kısmi',      bg: '#e0f2fe', text: '#006290' },
+  5: { label: 'Tamamlandı', bg: '#dcfce7', text: '#15803d' },
+  6: { label: 'İptal',      bg: '#fee2e2', text: '#dc2626' },
+};
 
 export const PurchasingScreen: React.FC = () => {
-  const [searchText, setSearchText] = useState('');
+  const [search, setSearch] = useState('');
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
+  const navigation = useNavigation<any>();
+
+  const handleNavigate = (screen: string) => {
+    if (TAB.includes(screen)) navigation.navigate('Tabs' as never, { screen } as never);
+    else navigation.navigate(screen as never);
+  };
+
+  const offerData = useMemo(() => DataService.getPurchasingOffers(), []);
+  const invoiceData = useMemo(() => DataService.getPurchasingInvoices(), []);
+  const rawData = activeTab === 0 ? offerData : invoiceData;
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return rawData;
+    const q = search.toLowerCase();
+    return rawData.filter(item =>
+      String(item.TICARI_UNVANI || '').toLowerCase().includes(q) ||
+      String(item.STOK_ADI || '').toLowerCase().includes(q) ||
+      String(item.MARKASI || '').toLowerCase().includes(q) ||
+      String(item.TEKLIF_NO || item.FATURA_NO || '').toLowerCase().includes(q)
+    );
+  }, [rawData, search]);
+
+  const totalEur = useMemo(() => rawData.reduce((s, d) => s + Number(d.DVZ_IND_TUTAR || 0), 0), [rawData]);
+
+  const statusStyle = (s: string) => STATUS_STYLE[s] || { bg: '#f1f5f9', text: '#64748b' };
+  const getDurum = (kod: number) => FATURA_DURUM[kod] || { label: String(kod || '—'), bg: '#f1f5f9', text: '#64748b' };
+
+  const renderOffer = ({ item }: { item: any }) => {
+    const s = statusStyle(item.TEKLIF_DURUMU);
+    return (
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <View style={styles.cardIconWrap}>
+            <MaterialIcons name="shopping-cart" size={18} color="#006290" />
+          </View>
+          <View style={styles.cardMeta}>
+            <Text style={styles.cardTitle} numberOfLines={1}>{item.TICARI_UNVANI || '—'}</Text>
+            <Text style={styles.cardSub}>{item.TEKLIF_NO || '—'} · {excelDate(item.TARIHI)}</Text>
+          </View>
+          <View style={[styles.badge, { backgroundColor: s.bg }]}>
+            <Text style={[styles.badgeText, { color: s.text }]}>{item.TEKLIF_DURUMU || '—'}</Text>
+          </View>
+        </View>
+        <View style={styles.infoRow}>
+          <MaterialIcons name="inventory-2" size={13} color="#94a3b8" />
+          <Text style={styles.infoText} numberOfLines={1}>{item.STOK_ADI || '—'}</Text>
+        </View>
+        {(item.MARKASI || item.MODELI) ? (
+          <View style={styles.infoRow}>
+            <MaterialIcons name="business" size={13} color="#94a3b8" />
+            <Text style={styles.infoText}>{[item.MARKASI, item.MODELI].filter(Boolean).join(' · ')}</Text>
+          </View>
+        ) : null}
+        <View style={styles.metricsRow}>
+          <View style={styles.metric}>
+            <Text style={styles.metricLabel}>Miktar</Text>
+            <Text style={styles.metricValue}>{item.MIKTARI || '—'} {item.BIRIMI || ''}</Text>
+          </View>
+          <View style={styles.metricDivider} />
+          <View style={styles.metric}>
+            <Text style={styles.metricLabel}>Birim €</Text>
+            <Text style={styles.metricValue}>€{Number(item.DVZ_IND_FIYAT || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</Text>
+          </View>
+          <View style={styles.metricDivider} />
+          <View style={styles.metric}>
+            <Text style={styles.metricLabel}>Toplam €</Text>
+            <Text style={[styles.metricValue, { color: '#006290' }]}>€{Number(item.DVZ_IND_TUTAR || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</Text>
+          </View>
+          <View style={styles.metricDivider} />
+          <View style={styles.metric}>
+            <Text style={styles.metricLabel}>Toplam ₺</Text>
+            <Text style={[styles.metricValue, { fontSize: 10 }]}>₺{Number(item.KPB_IND_TUTAR || 0).toLocaleString('tr-TR', { minimumFractionDigits: 0 })}</Text>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  const renderInvoice = ({ item }: { item: any }) => {
+    const durum = getDurum(item.FATURA_DURUMU);
+    return (
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <View style={styles.cardIconWrap}>
+            <MaterialIcons name="request-quote" size={18} color="#006290" />
+          </View>
+          <View style={styles.cardMeta}>
+            <Text style={styles.cardTitle} numberOfLines={1}>{item.TICARI_UNVANI || '—'}</Text>
+            <Text style={styles.cardSub}>{item.FATURA_NO || '—'} · {excelDate(item.TARIHI)}</Text>
+          </View>
+          <View style={[styles.badge, { backgroundColor: durum.bg }]}>
+            <Text style={[styles.badgeText, { color: durum.text }]}>{durum.label}</Text>
+          </View>
+        </View>
+        <View style={styles.infoRow}>
+          <MaterialIcons name="inventory-2" size={13} color="#94a3b8" />
+          <Text style={styles.infoText} numberOfLines={1}>{item.STOK_ADI || '—'}</Text>
+        </View>
+        {(item.MARKASI || item.MODELI) ? (
+          <View style={styles.infoRow}>
+            <MaterialIcons name="business" size={13} color="#94a3b8" />
+            <Text style={styles.infoText}>{[item.MARKASI, item.MODELI].filter(Boolean).join(' · ')}</Text>
+          </View>
+        ) : null}
+        <View style={styles.metricsRow}>
+          <View style={styles.metric}>
+            <Text style={styles.metricLabel}>Miktar</Text>
+            <Text style={styles.metricValue}>{item.MIKTARI || '—'}</Text>
+          </View>
+          <View style={styles.metricDivider} />
+          <View style={styles.metric}>
+            <Text style={styles.metricLabel}>Birim €</Text>
+            <Text style={styles.metricValue}>€{Number(item.DVZ_IND_FIYAT || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</Text>
+          </View>
+          <View style={styles.metricDivider} />
+          <View style={styles.metric}>
+            <Text style={styles.metricLabel}>Toplam €</Text>
+            <Text style={[styles.metricValue, { color: '#006290' }]}>€{Number(item.DVZ_IND_TUTAR || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</Text>
+          </View>
+          <View style={styles.metricDivider} />
+          <View style={styles.metric}>
+            <Text style={styles.metricLabel}>Toplam ₺</Text>
+            <Text style={[styles.metricValue, { fontSize: 10 }]}>₺{Number(item.KPB_IND_TUTAR || 0).toLocaleString('tr-TR', { minimumFractionDigits: 0 })}</Text>
+          </View>
+        </View>
+      </View>
+    );
+  };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <Header
-        title="ISAC Sense Digital"
-        subtitle="Satınalma"
-        showNotification={true}
-        showProfile={true}
-      />
-      
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Editorial Header Section */}
-        <View style={styles.headerSection}>
-          <View style={styles.headerLeft}>
-            <Text style={styles.sectionTitle}>Satınalma</Text>
-            <Text style={styles.sectionLabel}>Tedarik Yönetimi</Text>
-          </View>
-          
-          {/* Mini Trend Graphic */}
-          <View style={[styles.trendCard, isSmallScreen && styles.trendCardSmall]}>
-            <View>
-              <Text style={styles.trendLabel}>Aylık Trend</Text>
-              <Text style={styles.trendValue}>+8.7%</Text>
-            </View>
-            <View style={styles.trendBars}>
-              <View style={[styles.trendBar, { height: '30%', backgroundColor: '#f59e0b20' }]} />
-              <View style={[styles.trendBar, { height: '45%', backgroundColor: '#f59e0b20' }]} />
-              <View style={[styles.trendBar, { height: '20%', backgroundColor: '#f59e0b40' }]} />
-              <View style={[styles.trendBar, { height: '65%', backgroundColor: '#f59e0b60' }]} />
-              <View style={[styles.trendBar, { height: '80%', backgroundColor: '#f59e0b' }]} />
-              <View style={[styles.trendBar, { height: '55%', backgroundColor: '#f59e0b80' }]} />
-            </View>
-          </View>
-        </View>
+    <SafeAreaView style={styles.safe}>
+      <NavigationDrawer isVisible={drawerOpen} onClose={() => setDrawerOpen(false)} onNavigate={handleNavigate} />
+      <Header title="ISAC Sense Digital" subtitle="Satınalma" onMenuPress={() => setDrawerOpen(true)} onNotificationPress={() => (navigation as any).navigate("Notifications")} onProfilePress={() => (navigation as any).navigate("Profile")} showNotification showProfile />
 
-        {/* Stats Card */}
-        <View style={styles.statsCard}>
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Toplam Onay Bekleyen</Text>
-            <Text style={styles.statValue}>24</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Aylık Hacim</Text>
-            <Text style={styles.statValue}>₺1.2M</Text>
-          </View>
+      {/* Özet */}
+      <View style={styles.summaryRow}>
+        <View style={[styles.summaryCard, { backgroundColor: '#e0f2fe' }]}>
+          <MaterialIcons name="shopping-cart" size={16} color="#006290" />
+          <Text style={[styles.summaryNum, { color: '#006290' }]}>{offerData.length}</Text>
+          <Text style={styles.summaryLabel}>Teklif</Text>
         </View>
+        <View style={[styles.summaryCard, { backgroundColor: '#f3e8ff' }]}>
+          <MaterialIcons name="request-quote" size={16} color="#7c3aed" />
+          <Text style={[styles.summaryNum, { color: '#7c3aed' }]}>{invoiceData.length}</Text>
+          <Text style={styles.summaryLabel}>Fatura</Text>
+        </View>
+        <View style={[styles.summaryCard, { backgroundColor: '#dcfce7' }]}>
+          <MaterialIcons name="check-circle" size={16} color="#15803d" />
+          <Text style={[styles.summaryNum, { color: '#15803d' }]}>
+            {offerData.filter(d => d.TEKLIF_DURUMU === 'Siparişe Aktarıldı').length}
+          </Text>
+          <Text style={styles.summaryLabel}>Aktarıldı</Text>
+        </View>
+        <View style={[styles.summaryCard, { backgroundColor: '#fef9c3' }]}>
+          <MaterialIcons name="euro" size={16} color="#a16207" />
+          <Text style={[styles.summaryNum, { color: '#a16207', fontSize: 12 }]}>€{(totalEur / 1000).toFixed(0)}K</Text>
+          <Text style={styles.summaryLabel}>Tutar</Text>
+        </View>
+      </View>
 
-        {/* Search & Filter Panel */}
-        <View style={styles.searchPanel}>
-          <View style={styles.searchContainer}>
-            <MaterialIcons name="search" size={20} color="#64748B" style={styles.searchIcon} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Tedarikçi veya sipariş no ara..."
-              placeholderTextColor="#64748B"
-              value={searchText}
-              onChangeText={setSearchText}
-            />
-          </View>
-          <TouchableOpacity style={styles.filterButton}>
-            <MaterialIcons name="tune" size={20} color="#181c20" />
-            <Text style={styles.filterText}>Filtrele</Text>
+      {/* Tab */}
+      <View style={styles.tabRow}>
+        {TABS.map((t, i) => (
+          <TouchableOpacity key={t} style={[styles.tab, activeTab === i && styles.tabActive]} onPress={() => setActiveTab(i)}>
+            <Text style={[styles.tabText, activeTab === i && styles.tabTextActive]}>{t}</Text>
           </TouchableOpacity>
-        </View>
+        ))}
+      </View>
 
-        {/* Purchasing List */}
-        <View style={styles.purchasingList}>
-          {purchasingData.map((item, index) => (
-            <TouchableOpacity key={index} style={styles.supplierCard}>
-              <View style={styles.cardContent}>
-                {/* Header */}
-                <View style={styles.cardHeader}>
-                  <View style={styles.supplierInfo}>
-                    <View style={[styles.supplierIcon, { backgroundColor: item.iconBg }]}>
-                      <MaterialIcons name={item.icon as any} size={24} color={item.iconColor} />
-                    </View>
-                    <View>
-                      <Text style={styles.supplierName}>{item.supplier}</Text>
-                      <Text style={styles.supplierId}>ID: {item.id}</Text>
-                    </View>
-                  </View>
-                  <View style={[styles.statusBadge, { backgroundColor: item.statusBg }]}>
-                    <Text style={[styles.statusText, { color: item.statusColor }]}>{item.status}</Text>
-                  </View>
-                </View>
+      {/* Arama */}
+      <View style={styles.searchWrap}>
+        <MaterialIcons name="search" size={20} color="#94a3b8" />
+        <TextInput style={styles.searchInput} placeholder="Tedarikçi, no, ürün veya marka ara..." placeholderTextColor="#94a3b8" value={search} onChangeText={setSearch} />
+        {search.length > 0 && <TouchableOpacity onPress={() => setSearch('')}><MaterialIcons name="close" size={18} color="#94a3b8" /></TouchableOpacity>}
+      </View>
 
-                {/* Details */}
-                <View style={styles.cardDetails}>
-                  <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Bekleyen Onaylar</Text>
-                    <Text style={styles.detailValue}>{item.pendingText}</Text>
-                  </View>
-                  <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Son İşlem Tarihi</Text>
-                    <Text style={styles.detailDate}>{item.lastDate}</Text>
-                  </View>
-                </View>
-
-                {/* Actions */}
-                <View style={styles.cardActions}>
-                  <TouchableOpacity style={styles.detailButton}>
-                    <Text style={styles.detailButtonText}>Detayları Gör</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.moreButton}>
-                    <MaterialIcons name="more-horiz" size={16} color="#64748B" />
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </ScrollView>
+      <FlatList
+        data={filtered}
+        renderItem={activeTab === 0 ? renderOffer : renderInvoice}
+        keyExtractor={(_, i) => String(i)}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+        ListEmptyComponent={<View style={styles.empty}><MaterialIcons name="inbox" size={48} color="#cbd5e1" /><Text style={styles.emptyText}>Sonuç bulunamadı</Text></View>}
+      />
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  
-  // Header Section
-  headerSection: {
-    flexDirection: isSmallScreen ? 'column' : 'row',
-    justifyContent: 'space-between',
-    alignItems: isSmallScreen ? 'flex-start' : 'center',
-    paddingHorizontal: 16,
-    marginBottom: 24,
-    gap: 16,
-  },
-  headerLeft: {
-    flex: 4,
-    flexDirection: 'column',
-  },
-  sectionLabel: {
-    fontSize: 10,
-    fontWeight: '500',
-    color: '#006290',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    fontFamily: 'Inter',
-  },
-  sectionTitle: {
-    fontSize: isSmallScreen ? 22 : 30,
-    fontWeight: '800',
-    color: '#181c20',
-    fontFamily: 'Manrope',
-    flexShrink: 0,
-    marginBottom: 4,
-    letterSpacing: 2,
-    flexWrap: 'nowrap',
-  },
-  
-  // Trend Card
-  trendCard: {
-    backgroundColor: '#f8fafc',
-    borderRadius: 12,
-    padding: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    minWidth: isSmallScreen ? 140 : 180,
-  },
-  trendCardSmall: {
-    minWidth: 200,
-    padding: 12,
-    gap: 12,
-  },
-  trendLabel: {
-    fontSize: 12,
-    fontWeight: '400',
-    color: '#64748B',
-    marginBottom: 2,
-    fontFamily: 'Inter',
-  },
-  trendValue: {
-    fontSize: isSmallScreen ? 12 : 12,
-    fontWeight: '700',
-    color: '#f59e0b',
-    fontFamily: 'Manrope',
-  },
-  trendBars: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 4,
-    height: isSmallScreen ? 36 : 48,
-    flex: 1,
-  },
-  trendBar: {
-    width: 8,
-    borderRadius: 4,
-  },
-  
-  // Stats Card
-  statsCard: {
-    backgroundColor: '#f8fafc',
-    borderRadius: 12,
-    padding: 24,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 32,
-    marginHorizontal: 16,
-    marginBottom: 20,
-  },
-  statItem: {
-    flex: 1,
-  },
-  statLabel: {
-    fontSize: 10,
-    fontWeight: '500',
-    color: '#64748B',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    fontFamily: 'Inter',
-    marginBottom: 4,
-  },
-  statValue: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#181c20',
-    fontFamily: 'Manrope',
-  },
-  statDivider: {
-    width: 1,
-    height: 40,
-    backgroundColor: '#e2e8f0',
-  },
-  
-  // Search Panel
-  searchPanel: {
-    flexDirection: isSmallScreen ? 'column' : 'row',
-    gap: 12,
-    paddingHorizontal: 16,
-    marginBottom: 20,
-  },
-  searchContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: isSmallScreen ? 12 : 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  searchIcon: {
-    marginRight: 12,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: isSmallScreen ? 14 : 16,
-    color: '#181c20',
-    fontFamily: 'Inter',
-  },
-  filterButton: {
-    backgroundColor: '#e2e8f0',
-    paddingHorizontal: isSmallScreen ? 16 : 20,
-    paddingVertical: isSmallScreen ? 12 : 16,
-    borderRadius: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  filterText: {
-    marginLeft: 8,
-    fontSize: isSmallScreen ? 12 : 14,
-    fontWeight: '500',
-    color: '#181c20',
-    fontFamily: 'Inter',
-  },
-  
-  // Purchasing List
-  purchasingList: {
-    paddingHorizontal: 16,
-    paddingBottom: 32,
-    gap: 16,
-  },
-  supplierCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  cardContent: {
-    padding: 24,
-    backgroundColor: '#ffffff',
-    flexDirection: 'column',
-    flex: 1,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 16,
-  },
-  supplierInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  supplierIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  supplierName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#181c20',
-    fontFamily: 'Manrope',
-  },
-  supplierId: {
-    fontSize: 11,
-    color: '#64748B',
-    fontFamily: 'Inter',
-    marginTop: 2,
-  },
-  statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  statusText: {
-    fontSize: 10,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    fontFamily: 'Inter',
-  },
-  cardDetails: {
-    marginBottom: 24,
-    gap: 16,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  detailLabel: {
-    fontSize: 12,
-    color: '#64748B',
-    fontFamily: 'Inter',
-  },
-  detailValue: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#181c20',
-    fontFamily: 'Manrope',
-  },
-  detailDate: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#181c20',
-    fontFamily: 'Inter',
-  },
-  cardActions: {
-    flexDirection: 'row',
-    gap: 8,
-    alignItems: 'center',
-  },
-  detailButton: {
-    flex: 1,
-    backgroundColor: '#006290',
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  detailButtonText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#ffffff',
-    fontFamily: 'Inter',
-  },
-  moreButton: {
-    width: 48,
-    height: 48,
-    backgroundColor: '#f1f4f9',
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  safe: { flex: 1, backgroundColor: '#f7f9fe' },
+  summaryRow: { flexDirection: 'row', paddingHorizontal: 16, gap: 8, marginBottom: 12 },
+  summaryCard: { flex: 1, borderRadius: 12, padding: 8, alignItems: 'center', gap: 3 },
+  summaryNum: { fontSize: isSmallScreen ? 14 : 16, fontWeight: '800' },
+  summaryLabel: { fontSize: 9, color: '#64748b', fontWeight: '600', textAlign: 'center' },
+  tabRow: { flexDirection: 'row', marginHorizontal: 16, marginBottom: 12, backgroundColor: '#f1f5f9', borderRadius: 12, padding: 4 },
+  tab: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 10 },
+  tabActive: { backgroundColor: '#fff', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 4, elevation: 2 },
+  tabText: { fontSize: 13, fontWeight: '600', color: '#94a3b8' },
+  tabTextActive: { color: '#006290', fontWeight: '700' },
+  searchWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', marginHorizontal: 16, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, gap: 8, marginBottom: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2 },
+  searchInput: { flex: 1, fontSize: 14, color: '#1e293b' },
+  listContent: { paddingHorizontal: 16, paddingBottom: 100 },
+  empty: { alignItems: 'center', paddingTop: 60, gap: 12 },
+  emptyText: { color: '#94a3b8', fontSize: 14 },
+  card: { backgroundColor: '#fff', borderRadius: 16, marginBottom: 12, padding: 14, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 3, gap: 7 },
+  cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  cardIconWrap: { width: 36, height: 36, borderRadius: 10, backgroundColor: '#e0f2fe', alignItems: 'center', justifyContent: 'center' },
+  cardMeta: { flex: 1 },
+  cardTitle: { fontSize: 13, fontWeight: '700', color: '#1e293b' },
+  cardSub: { fontSize: 11, color: '#64748b', marginTop: 1 },
+  badge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
+  badgeText: { fontSize: 10, fontWeight: '700' },
+  infoRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 6 },
+  infoText: { fontSize: 12, color: '#64748b', flex: 1 },
+  metricsRow: { flexDirection: 'row', backgroundColor: '#f8fafc', borderRadius: 10, padding: 10, alignItems: 'center', marginTop: 4 },
+  metric: { flex: 1, alignItems: 'center', gap: 2 },
+  metricLabel: { fontSize: 9, color: '#94a3b8', fontWeight: '600' },
+  metricValue: { fontSize: 12, fontWeight: '800', color: '#1e293b' },
+  metricDivider: { width: 1, height: 28, backgroundColor: '#e2e8f0' },
 });

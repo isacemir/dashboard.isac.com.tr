@@ -1,456 +1,208 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import React, { useState } from 'react';
-import {
-    Dimensions,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
-} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import React, { useMemo, useState } from 'react';
+import { Dimensions, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
 import { Header } from '../components/Header';
+import { NavigationDrawer } from '../components/NavigationDrawer';
+import DataService from '../services/DataService';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 const isSmallScreen = width < 380;
-const isTablet = width > 768;
+const TAB = ['Dashboard', 'Sales', 'Purchasing', 'Stock', 'CRM'];
 
-const stockAlerts = [
-  {
-    id: 1,
-    product: 'Organik Zeytinyağı 5L',
-    currentStock: 2,
-    criticalLevel: 10,
-    description: 'Kritik seviye: 10 Adet. Hemen sipariş oluşturulmalı.',
-    percentage: 20,
-  },
-  {
-    id: 2,
-    product: 'MacBook Pro M3',
-    currentStock: 1,
-    criticalLevel: 3,
-    description: 'Kritik seviye: 3 Adet. Bekleyen 4 sipariş var.',
-    percentage: 33,
-  },
-];
-
-const categories = [
-  'Tümü',
-  'Gıda & İçecek',
-  'Teknoloji',
-  'Ev Tekstili',
-  'Kozmetik',
-  'Ofis Malzemeleri',
-];
-
-const products = [
-  {
-    id: 1,
-    name: 'Red Velocity Runner',
-    category: 'Teknoloji / Giyim',
-    stock: 124,
-    critical: 15,
-    status: 'In Stock',
-    statusColor: '#006290',
-    statusBg: '#00629090',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBkMmKBfZtAMzAJK6apMB1CqYp8mvnRLVCYDiUIVfhgsI3PgOtF57nmw1Sc5j5qLhUSTFU7CjJA0ikXCZfVrrp_9YygHPPbqGe698v7kETH-7BwhZDR8x_RSau1NCH45yYppC5nCgXSsuKg51iRfvfWd81Z2Ke7rihVy9vD56NXV6z-X5fYhXXYthdEamN_WxiFUAqbLvXg5TX2VIRFkPSz8Rj_CkQPngxmxTrTlHYGc-XU4K7pTie5qMEZS07I6NkQwhD5eiJTkw',
-  },
-  {
-    id: 2,
-    name: 'Arctic Smart Watch V2',
-    category: 'Teknoloji / Aksesuar',
-    stock: 18,
-    critical: 20,
-    status: 'Limited',
-    statusColor: '#7b5500',
-    statusBg: '#ffba3890',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAeE2H2ebjOKHoCzAL_rKdtYrlV4ulyh60olL_pMSUaRwcSBh62rFahNSFUUqUXMfqsoqn7PokVjdY-bEehEfGKdJlauZQX5mShud3GvEF3Wf6Db060zC7y4nqanb3GYvZ5Ji6RiEFdL5BVGkdjCiDa7XoOPlPVlugwn5HTlDzhFM2t_UtmD2MSZWzbzsB8jV9_2jEdDQF-BqLobel6gGt5ERZZbdC_Iyy-KdVkiqOJm0F8fPN-kGyzh4cODTb7d6KtVb1ZIVf5jw',
-  },
-  {
-    id: 3,
-    name: 'Obsidian Audio Pods',
-    category: 'Teknoloji / Ses',
-    stock: 56,
-    critical: 10,
-    status: 'In Stock',
-    statusColor: '#006290',
-    statusBg: '#00629090',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDNqBDyjK9I9Wm5Z6Ojyf7G_MNyq-__hPC3_gcAVfk97T5XX9vpWZt5sg7vIVksxP_G1qKtrN_R_poB1ZIiQc0XnqhbFsfaxRFmpeoBi8Gq-3D_34sei5cSbuWiN1x92bEQ_ydc29AjX7uHauAKMjclj-gqxSbOb-7jYufPQp6rg15e3C_pCqPtGVeLRfk9noQ3M_a0K8uvXnhGTHKKqPCPUfutgDZlqI4wNim1GzG2DuSxRBfhSlU24CREtcgTbhOFppKjdRK9hA',
-  },
-];
+const DURUM_STYLE: Record<string, { bg: string; text: string; icon: string }> = {
+  'SIFIR BAKİYE - SATIN ALMA YOK': { bg: '#fee2e2', text: '#dc2626', icon: 'warning' },
+  'SIFIR BAKİYE - SATIN ALMA VAR': { bg: '#fef9c3', text: '#a16207', icon: 'pending' },
+  'POZİTİF BAKİYE':                { bg: '#dcfce7', text: '#15803d', icon: 'check-circle' },
+  'NEGATİF BAKİYE':                { bg: '#fee2e2', text: '#dc2626', icon: 'error' },
+};
 
 export const StockScreen: React.FC = () => {
-  const [searchText, setSearchText] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('Tümü');
+  const [search, setSearch] = useState('');
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [filter, setFilter] = useState('Tümü');
+  const navigation = useNavigation<any>();
+
+  const handleNavigate = (screen: string) => {
+    if (TAB.includes(screen)) navigation.navigate('Tabs' as never, { screen } as never);
+    else navigation.navigate(screen as never);
+  };
+
+  const rawData = useMemo(() => DataService.getStockOrders(), []);
+
+  const filtered = useMemo(() => {
+    let data = rawData;
+    if (filter === 'Kritik') data = data.filter(d => String(d.DURUM || '').includes('SIFIR BAKİYE'));
+    else if (filter === 'Stokta') data = data.filter(d => String(d.DURUM || '').includes('POZİTİF'));
+    else if (filter === 'Sipariş Var') data = data.filter(d => String(d.DURUM || '').includes('SATIN ALMA VAR'));
+
+    if (!search.trim()) return data;
+    const q = search.toLowerCase();
+    return data.filter(item =>
+      String(item.STOK_ADI || '').toLowerCase().includes(q) ||
+      String(item.STOKKODU || '').toLowerCase().includes(q) ||
+      String(item.MARKASI || '').toLowerCase().includes(q) ||
+      String(item.MODELI || '').toLowerCase().includes(q)
+    );
+  }, [rawData, search, filter]);
+
+  const kritik = useMemo(() => rawData.filter(d => String(d.DURUM || '').includes('SIFIR BAKİYE')).length, [rawData]);
+  const pozitif = useMemo(() => rawData.filter(d => String(d.DURUM || '').includes('POZİTİF')).length, [rawData]);
+  const siparisVar = useMemo(() => rawData.filter(d => String(d.DURUM || '').includes('SATIN ALMA VAR')).length, [rawData]);
+
+  const getDurum = (d: string) => DURUM_STYLE[d] || { bg: '#f1f5f9', text: '#64748b', icon: 'help' };
+
+  const renderItem = ({ item }: { item: any }) => {
+    const durum = getDurum(item.DURUM);
+    const stok = Number(item.STOK_MIKTARI || 0);
+    const kalan = Number(item.SIPARIS_KALAN_MIKTARI || 0);
+    const termin = Number(item.TERMINLI_STOK || 0);
+    const terminMiktar = Number(item.TERMIN_MIKTAR || 0);
+    const customers = [item.CARI_1, item.CARI_2, item.CARI_3, item.CARI_4, item.CARI_5,
+      item.CARI_6, item.CARI_7, item.CARI_8, item.CARI_9, item.CARI_10].filter(Boolean);
+
+    return (
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <View style={[styles.cardIconWrap, { backgroundColor: durum.bg }]}>
+            <MaterialIcons name={durum.icon as any} size={18} color={durum.text} />
+          </View>
+          <View style={styles.cardMeta}>
+            <Text style={styles.cardTitle} numberOfLines={2}>{item.STOK_ADI || '—'}</Text>
+            <Text style={styles.cardSub}>{item.STOKKODU || '—'}</Text>
+          </View>
+        </View>
+
+        <View style={[styles.durumBadge, { backgroundColor: durum.bg }]}>
+          <Text style={[styles.durumText, { color: durum.text }]}>{item.DURUM || '—'}</Text>
+        </View>
+
+        {(item.MARKASI || item.MODELI) ? (
+          <View style={styles.infoRow}>
+            <MaterialIcons name="business" size={13} color="#94a3b8" />
+            <Text style={styles.infoText}>{[item.MARKASI, item.MODELI].filter(Boolean).join(' · ')}</Text>
+          </View>
+        ) : null}
+
+        <View style={styles.metricsRow}>
+          <View style={styles.metric}>
+            <Text style={styles.metricLabel}>Stok</Text>
+            <Text style={[styles.metricValue, { color: stok > 0 ? '#15803d' : '#dc2626' }]}>{stok || '0'}</Text>
+          </View>
+          <View style={styles.metricDivider} />
+          <View style={styles.metric}>
+            <Text style={styles.metricLabel}>Sipariş Kalan</Text>
+            <Text style={[styles.metricValue, { color: '#a16207' }]}>{kalan}</Text>
+          </View>
+          <View style={styles.metricDivider} />
+          <View style={styles.metric}>
+            <Text style={styles.metricLabel}>Termin</Text>
+            <Text style={[styles.metricValue, { color: '#006290' }]}>{terminMiktar || '0'}</Text>
+          </View>
+          <View style={styles.metricDivider} />
+          <View style={styles.metric}>
+            <Text style={styles.metricLabel}>Terminli Stok</Text>
+            <Text style={[styles.metricValue, { color: termin < 0 ? '#dc2626' : '#15803d' }]}>{termin}</Text>
+          </View>
+        </View>
+
+        {customers.length > 0 && (
+          <View style={styles.infoRow}>
+            <MaterialIcons name="people" size={13} color="#94a3b8" />
+            <Text style={styles.infoText} numberOfLines={2}>{customers.join(' · ')}</Text>
+          </View>
+        )}
+      </View>
+    );
+  };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <Header
-        title="ISAC Sense Digital"
-        subtitle="Stok & Sipariş"
-        showNotification={true}
-        showProfile={true}
+    <SafeAreaView style={styles.safe}>
+      <NavigationDrawer isVisible={drawerOpen} onClose={() => setDrawerOpen(false)} onNavigate={handleNavigate} />
+      <Header title="ISAC Sense Digital" subtitle="Stok & Sipariş" onMenuPress={() => setDrawerOpen(true)} onNotificationPress={() => (navigation as any).navigate("Notifications")} onProfilePress={() => (navigation as any).navigate("Profile")} showNotification showProfile />
+
+      {/* Özet */}
+      <View style={styles.summaryRow}>
+        <View style={[styles.summaryCard, { backgroundColor: '#e0f2fe' }]}>
+          <MaterialIcons name="inventory" size={16} color="#006290" />
+          <Text style={[styles.summaryNum, { color: '#006290' }]}>{rawData.length}</Text>
+          <Text style={styles.summaryLabel}>Toplam</Text>
+        </View>
+        <View style={[styles.summaryCard, { backgroundColor: '#dcfce7' }]}>
+          <MaterialIcons name="check-circle" size={16} color="#15803d" />
+          <Text style={[styles.summaryNum, { color: '#15803d' }]}>{pozitif}</Text>
+          <Text style={styles.summaryLabel}>Stokta</Text>
+        </View>
+        <View style={[styles.summaryCard, { backgroundColor: '#fee2e2' }]}>
+          <MaterialIcons name="warning" size={16} color="#dc2626" />
+          <Text style={[styles.summaryNum, { color: '#dc2626' }]}>{kritik}</Text>
+          <Text style={styles.summaryLabel}>Kritik</Text>
+        </View>
+        <View style={[styles.summaryCard, { backgroundColor: '#fef9c3' }]}>
+          <MaterialIcons name="pending" size={16} color="#a16207" />
+          <Text style={[styles.summaryNum, { color: '#a16207' }]}>{siparisVar}</Text>
+          <Text style={styles.summaryLabel}>Sipariş Var</Text>
+        </View>
+      </View>
+
+      {/* Filtre */}
+      <View style={styles.filterScroll}>
+        {['Tümü', 'Kritik', 'Stokta', 'Sipariş Var'].map(f => (
+          <TouchableOpacity key={f} style={[styles.filterTab, filter === f && styles.filterTabActive]} onPress={() => setFilter(f)}>
+            <Text style={[styles.filterTabText, filter === f && styles.filterTabTextActive]}>{f}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* Arama */}
+      <View style={styles.searchWrap}>
+        <MaterialIcons name="search" size={20} color="#94a3b8" />
+        <TextInput style={styles.searchInput} placeholder="Stok kodu, ürün, marka veya model ara..." placeholderTextColor="#94a3b8" value={search} onChangeText={setSearch} />
+        {search.length > 0 && <TouchableOpacity onPress={() => setSearch('')}><MaterialIcons name="close" size={18} color="#94a3b8" /></TouchableOpacity>}
+      </View>
+
+      <FlatList
+        data={filtered}
+        renderItem={renderItem}
+        keyExtractor={(_, i) => String(i)}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+        ListEmptyComponent={<View style={styles.empty}><MaterialIcons name="inbox" size={48} color="#cbd5e1" /><Text style={styles.emptyText}>Sonuç bulunamadı</Text></View>}
       />
-      
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Stok & Sipariş</Text>
-          <Text style={styles.headerSubtitle}>Envanterinizi editorial hassasiyetle yönetin.</Text>
-        </View>
-
-        {/* Critical Stock Alerts */}
-        <View style={styles.alertsSection}>
-          <View style={styles.alertsHeader}>
-            <Text style={styles.alertsTitle}>Kritik Stok Uyarıları</Text>
-            <View style={styles.alertBadge}>
-              <Text style={styles.alertBadgeText}>3 Acil Durum</Text>
-            </View>
-          </View>
-          
-          {stockAlerts.map((alert) => (
-            <View key={alert.id} style={styles.alertCard}>
-              <View style={styles.alertIcon}>
-                <MaterialIcons name="warning" size={24} color="#db322f" />
-              </View>
-              <View style={styles.alertContent}>
-                <View style={styles.alertHeader}>
-                  <Text style={styles.alertProduct}>{alert.product}</Text>
-                  <Text style={styles.alertStock}>{alert.currentStock} Adet</Text>
-                </View>
-                <Text style={styles.alertDescription}>{alert.description}</Text>
-                <View style={styles.progressBar}>
-                  <View style={[styles.progressFill, { width: `${alert.percentage}%` }]} />
-                </View>
-              </View>
-            </View>
-          ))}
-        </View>
-
-        {/* Category Filters */}
-        <View style={styles.categoriesSection}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {categories.map((category) => (
-              <TouchableOpacity
-                key={category}
-                style={[
-                  styles.categoryButton,
-                  selectedCategory === category && styles.categoryButtonActive,
-                ]}
-                onPress={() => setSelectedCategory(category)}
-              >
-                <Text
-                  style={[
-                    styles.categoryText,
-                    selectedCategory === category && styles.categoryTextActive,
-                  ]}
-                >
-                  {category}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-
-        {/* Product Grid */}
-        <View style={styles.productsSection}>
-          {products.map((product) => (
-            <View key={product.id} style={styles.productCard}>
-              <View style={styles.productImageContainer}>
-                <Image source={{ uri: product.image }} style={styles.productImage} />
-                <View style={[styles.statusBadge, { backgroundColor: product.statusBg }]}>
-                  <Text style={[styles.statusText, { color: product.statusColor }]}>
-                    {product.status}
-                  </Text>
-                </View>
-              </View>
-              
-              <View style={styles.productContent}>
-                <Text style={styles.productCategory}>{product.category}</Text>
-                <Text style={styles.productName}>{product.name}</Text>
-                
-                <View style={styles.productStats}>
-                  <View style={styles.statBox}>
-                    <Text style={styles.statLabel}>Stok</Text>
-                    <Text style={[styles.statValue, { color: '#006290' }]}>
-                      {product.stock}
-                    </Text>
-                  </View>
-                  <View style={styles.statBox}>
-                    <Text style={styles.statLabel}>Kritik</Text>
-                    <Text style={[styles.statValue, { color: '#181c20' }]}>
-                      {product.critical}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            </View>
-          ))}
-        </View>
-      </ScrollView>
-
-      {/* Floating Action Button */}
-      <TouchableOpacity style={styles.fab}>
-        <MaterialIcons name="qr-code-scanner" size={24} color="#ffffff" />
-      </TouchableOpacity>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  
-  // Header
-  header: {
-    paddingHorizontal: 24,
-    paddingVertical: 32,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#181c20',
-    fontFamily: 'Manrope',
-    marginBottom: 8,
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: '#64748B',
-    fontFamily: 'Inter',
-  },
-  
-  // Alerts Section
-  alertsSection: {
-    paddingHorizontal: 24,
-    marginBottom: 32,
-  },
-  alertsHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  alertsTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#db322f',
-    fontFamily: 'Manrope',
-  },
-  alertBadge: {
-    backgroundColor: '#ffdad6',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  alertBadgeText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#db322f',
-    fontFamily: 'Inter',
-  },
-  alertCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 16,
-    flexDirection: 'row',
-    borderLeftWidth: 4,
-    borderLeftColor: '#db322f',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.04,
-    shadowRadius: 40,
-    elevation: 5,
-  },
-  alertIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 8,
-    backgroundColor: '#db322f10',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16,
-  },
-  alertContent: {
-    flex: 1,
-  },
-  alertHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 4,
-  },
-  alertProduct: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#181c20',
-    fontFamily: 'Manrope',
-    flex: 1,
-  },
-  alertStock: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#db322f',
-    fontFamily: 'Inter',
-  },
-  alertDescription: {
-    fontSize: 12,
-    color: '#64748B',
-    fontFamily: 'Inter',
-    marginBottom: 16,
-  },
-  progressBar: {
-    height: 6,
-    backgroundColor: '#f1f4f9',
-    borderRadius: 3,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#db322f',
-    borderRadius: 3,
-  },
-  
-  // Categories Section
-  categoriesSection: {
-    marginBottom: 32,
-  },
-  categoryButton: {
-    paddingHorizontal: 24,
-    paddingVertical: 10,
-    borderRadius: 20,
-    backgroundColor: '#f1f4f9',
-    marginLeft: 24,
-  },
-  categoryButtonActive: {
-    backgroundColor: '#006290',
-    shadowColor: '#006290',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  categoryText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#3f4850',
-    fontFamily: 'Inter',
-  },
-  categoryTextActive: {
-    color: '#ffffff',
-    fontWeight: '600',
-  },
-  
-  // Products Section
-  productsSection: {
-    paddingHorizontal: 24,
-    paddingBottom: 32,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  productCard: {
-    width: isSmallScreen ? '100%' : '48%',
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
-    overflow: 'hidden',
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.06,
-    shadowRadius: 40,
-    elevation: 5,
-  },
-  productImageContainer: {
-    position: 'relative',
-    height: 192,
-  },
-  productImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-  statusBadge: {
-    position: 'absolute',
-    top: 16,
-    right: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  statusText: {
-    fontSize: 10,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    fontFamily: 'Inter',
-  },
-  productContent: {
-    padding: 24,
-  },
-  productCategory: {
-    fontSize: 10,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    color: '#64748B',
-    fontFamily: 'Inter',
-    marginBottom: 4,
-  },
-  productName: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#181c20',
-    fontFamily: 'Manrope',
-    marginBottom: 16,
-  },
-  productStats: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  statBox: {
-    flex: 1,
-    backgroundColor: '#f1f4f9',
-    padding: 12,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  statLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    color: '#64748B',
-    fontFamily: 'Inter',
-    marginBottom: 4,
-  },
-  statValue: {
-    fontSize: 20,
-    fontWeight: '800',
-    fontFamily: 'Manrope',
-  },
-  
-  // Floating Action Button
-  fab: {
-    position: 'absolute',
-    bottom: 112,
-    right: 24,
-    width: 64,
-    height: 64,
-    backgroundColor: '#006290',
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#006290',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 12,
-  },
+  safe: { flex: 1, backgroundColor: '#f7f9fe' },
+  summaryRow: { flexDirection: 'row', paddingHorizontal: 16, gap: 8, marginBottom: 10 },
+  summaryCard: { flex: 1, borderRadius: 12, padding: 8, alignItems: 'center', gap: 3 },
+  summaryNum: { fontSize: isSmallScreen ? 14 : 16, fontWeight: '800' },
+  summaryLabel: { fontSize: 9, color: '#64748b', fontWeight: '600', textAlign: 'center' },
+  filterScroll: { flexDirection: 'row', paddingHorizontal: 16, gap: 8, marginBottom: 10 },
+  filterTab: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, backgroundColor: '#fff', borderWidth: 1, borderColor: '#e2e8f0' },
+  filterTabActive: { backgroundColor: '#006290', borderColor: '#006290' },
+  filterTabText: { fontSize: 12, fontWeight: '600', color: '#64748b' },
+  filterTabTextActive: { color: '#fff' },
+  searchWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', marginHorizontal: 16, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, gap: 8, marginBottom: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2 },
+  searchInput: { flex: 1, fontSize: 14, color: '#1e293b' },
+  listContent: { paddingHorizontal: 16, paddingBottom: 100 },
+  empty: { alignItems: 'center', paddingTop: 60, gap: 12 },
+  emptyText: { color: '#94a3b8', fontSize: 14 },
+  card: { backgroundColor: '#fff', borderRadius: 16, marginBottom: 12, padding: 14, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 3, gap: 7 },
+  cardHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  cardIconWrap: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  cardMeta: { flex: 1 },
+  cardTitle: { fontSize: 13, fontWeight: '700', color: '#1e293b', lineHeight: 18 },
+  cardSub: { fontSize: 11, color: '#64748b', marginTop: 1 },
+  durumBadge: { alignSelf: 'flex-start', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
+  durumText: { fontSize: 10, fontWeight: '700' },
+  infoRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 6 },
+  infoText: { fontSize: 12, color: '#64748b', flex: 1 },
+  metricsRow: { flexDirection: 'row', backgroundColor: '#f8fafc', borderRadius: 10, padding: 10, alignItems: 'center', marginTop: 4 },
+  metric: { flex: 1, alignItems: 'center', gap: 2 },
+  metricLabel: { fontSize: 9, color: '#94a3b8', fontWeight: '600', textAlign: 'center' },
+  metricValue: { fontSize: 13, fontWeight: '800', color: '#1e293b' },
+  metricDivider: { width: 1, height: 28, backgroundColor: '#e2e8f0' },
 });

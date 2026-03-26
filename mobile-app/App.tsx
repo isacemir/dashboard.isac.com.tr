@@ -1,24 +1,32 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { CRMScreen } from './src/screens/CRMScreen';
 import { DashboardScreen } from './src/screens/DashboardScreen';
+import { ExcelFilesScreen } from './src/screens/ExcelFilesScreen';
+import { NotificationsScreen } from './src/screens/NotificationsScreen';
+import { OfferReportScreen } from './src/screens/OfferReportScreen';
+import { OrderReportScreen } from './src/screens/OrderReportScreen';
+import { ProfileScreen } from './src/screens/ProfileScreen';
+import { PurchasingInvoiceScreen } from './src/screens/PurchasingInvoiceScreen';
+import { PurchasingOfferScreen } from './src/screens/PurchasingOfferScreen';
 import { PurchasingScreen } from './src/screens/PurchasingScreen';
 import { SalesScreen } from './src/screens/SalesScreen';
+import { StockOrderScreen } from './src/screens/StockOrderScreen';
 import { StockScreen } from './src/screens/StockScreen';
 
 const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator();
 
-export default function App() {
+function TabNavigator() {
   return (
-    <SafeAreaProvider>
-      <NavigationContainer>
         <Tab.Navigator
           screenOptions={({ route }) => ({
-            tabBarIcon: ({ focused, color, size }) => {
+            tabBarIcon: ({ focused, color }) => {
               let iconName: keyof typeof MaterialIcons.glyphMap;
 
               if (route.name === 'Dashboard') {
@@ -35,38 +43,36 @@ export default function App() {
                 iconName = 'dashboard';
               }
 
-              return <MaterialIcons name={iconName} size={size} color={color} />;
+              return (
+                <MaterialIcons 
+                  name={iconName} 
+                  size={26} 
+                  color={color} 
+                />
+              );
             },
             tabBarActiveTintColor: '#006290',
             tabBarInactiveTintColor: '#94A3B8',
             tabBarStyle: {
-              backgroundColor: 'transparent',
-              borderTopColor: 'transparent',
-              borderTopWidth: 1,
-              paddingBottom: 8,
-              paddingTop: 8,
-              height: 80,
-              borderRadius: 24,
-              marginHorizontal: 16,
-              marginBottom: 16,
+              backgroundColor: '#ffffff',
+              borderTopWidth: 0,
+              elevation: 12,
               shadowColor: '#000',
-              shadowOffset: {
-                width: 0,
-                height: -10,
-              },
-              shadowOpacity: 0.1,
-              shadowRadius: 40,
-              elevation: 10,
+              shadowOffset: { width: 0, height: -4 },
+              shadowOpacity: 0.15,
+              shadowRadius: 16,
+              height: 75,
+              paddingBottom: 10,
+              paddingTop: 10,
+              borderTopLeftRadius: 0,
+              borderTopRightRadius: 0,
+              marginHorizontal: 0,
+              marginBottom: 10,
             },
             tabBarLabelStyle: {
-              fontFamily: 'Inter',
-              fontSize: 10,
-              fontWeight: '500',
-              textTransform: 'uppercase',
-              letterSpacing: 0.5,
-            },
-            tabBarItemStyle: {
-              paddingVertical: 4,
+              fontSize: 12,
+              fontWeight: '700',
+              marginTop: 4,
             },
             headerShown: false,
           })}
@@ -74,29 +80,87 @@ export default function App() {
           <Tab.Screen 
             name="Dashboard" 
             component={DashboardScreen}
-            options={{ tabBarLabel: 'Genel Bakış' }}
+            options={{ 
+              tabBarLabel: 'Genel Bakış',
+              tabBarItemStyle: {
+                flex: 1,
+                alignItems: 'center',
+                justifyContent: 'center',
+                paddingVertical: 4,
+              }
+            }}
           />
           <Tab.Screen 
             name="Sales" 
             component={SalesScreen}
-            options={{ tabBarLabel: 'Satış' }}
+            options={{ 
+              tabBarLabel: 'Satış',
+              tabBarItemStyle: {
+                flex: 1,
+                alignItems: 'center',
+                justifyContent: 'center',
+                paddingVertical: 4,
+              }
+            }}
           />
           <Tab.Screen 
             name="Purchasing" 
             component={PurchasingScreen}
-            options={{ tabBarLabel: 'Satınalma' }}
+            options={{ 
+              tabBarLabel: 'Satınalma',
+              tabBarItemStyle: {
+                flex: 1,
+                alignItems: 'center',
+                justifyContent: 'center',
+                paddingVertical: 4,
+              }
+            }}
           />
           <Tab.Screen 
             name="Stock" 
             component={StockScreen}
-            options={{ tabBarLabel: 'Stok' }}
+            options={{ 
+              tabBarLabel: 'Stok',
+              tabBarItemStyle: {
+                flex: 1,
+                alignItems: 'center',
+                justifyContent: 'center',
+                paddingVertical: 4,
+              }
+            }}
           />
           <Tab.Screen 
             name="CRM" 
             component={CRMScreen}
-            options={{ tabBarLabel: 'CRM' }}
+            options={{ 
+              tabBarLabel: 'CRM',
+              tabBarItemStyle: {
+                flex: 1,
+                alignItems: 'center',
+                justifyContent: 'center',
+                paddingVertical: 4,
+              }
+            }}
           />
         </Tab.Navigator>
+  );
+}
+
+export default function App() {
+  return (
+    <SafeAreaProvider>
+      <NavigationContainer>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Tabs" component={TabNavigator} />
+          <Stack.Screen name="Notifications" component={NotificationsScreen} />
+          <Stack.Screen name="Profile" component={ProfileScreen} />
+          <Stack.Screen name="OrderReport" component={OrderReportScreen} />
+          <Stack.Screen name="OfferReport" component={OfferReportScreen} />
+          <Stack.Screen name="PurchasingOffer" component={PurchasingOfferScreen} />
+          <Stack.Screen name="PurchasingInvoice" component={PurchasingInvoiceScreen} />
+          <Stack.Screen name="StockOrder" component={StockOrderScreen} />
+          <Stack.Screen name="ExcelFiles" component={ExcelFilesScreen} />
+        </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>
   );
